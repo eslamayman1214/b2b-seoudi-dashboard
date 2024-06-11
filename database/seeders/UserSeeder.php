@@ -17,20 +17,11 @@ class UserSeeder extends Seeder
     {
         DB::table('users')->insert([
             'name' => 'Eslam Ayman',
-            'email' => 'eslamayman1214@gmail.com',
-            'password' => Hash::make('123456789'),
-            'role' => 'admin', // Assuming you have a role column in your users table
+            'email' => 'eslamayman.div@gmail.com',
+            'password' => Hash::make('eslamayman.div@gmail.com'),
+            'role' => 'admin',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        DB::table('users')->insert([
-            'name' => 'Eslam ',
-            'email' => 'eslam.ayman@seoudisupermarket.com',
-            'password' => Hash::make('123456789'),
-            'role' => 'user', // Assuming you have a role column in your users table
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
     }
 }

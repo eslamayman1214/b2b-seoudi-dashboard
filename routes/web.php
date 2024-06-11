@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\InviteController;
+use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,4 +22,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+
+    Route::get('/invite', [InviteController::class, 'create'])->name('invite.create');
+    Route::post('/invite', [InviteController::class, 'send'])->name('invite.send');
+
+    Route::get('/change-password', [PasswordController::class, 'edit'])->name('password.edit');
+    Route::put('/change-password', [PasswordController::class, 'update'])->name('password.update');
+
 });
