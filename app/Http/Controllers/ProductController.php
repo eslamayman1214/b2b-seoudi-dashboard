@@ -5,24 +5,35 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Requests\ProductFilterRequest;
+use Carbon\Carbon;
+
+
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
-    {
-        $query = Product::query();
-        $sku = $request->input('sku');
+public function index(ProductFilterRequest $request)
+{
+    $query = Product::query();
+    $sku = $request->input('sku');
+    $startDate = $request->input('start_date');
+    $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : null;
+    $sortField = $request->input('sort_field', 'id');
+    $sortDirection = $request->input('sort_direction', 'asc');
 
-        // Filter by SKU if search parameter is provided
-        if ($request->has('sku')) {
-            $query->where('sku', 'like', '%' . $request->sku . '%');
-        }
-
-        // Paginate the results with 50 items per page
-        $products = $query->paginate(50);
-
-        return view('products.index', compact('products', 'sku'));
+    if ($sku) {
+        $query->where('sku', 'like', '%' . $sku . '%');
     }
+
+    if ($startDate && $endDate) {
+        $query->whereBetween('updated_at', [$startDate, $endDate]);
+    }
+
+    $products = $query->orderBy($sortField, $sortDirection)->paginate(50);
+
+    return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection'));
+}
+
 
     public function upload(Request $request)
     {
