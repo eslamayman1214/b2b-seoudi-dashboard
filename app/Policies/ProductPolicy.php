@@ -17,11 +17,11 @@ class ProductPolicy
 
     public function upload(User $user)
     {
-        return $user->role === 'admin';
+        return $user->role === 'admin'||$user->role ==='super admin';
     }
 
-    public function update(User $user, Product $product)
+    public function update(User $user)
     {
-        return $user->role === 'admin';
+        return $user->role === 'super admin';
     }
 }

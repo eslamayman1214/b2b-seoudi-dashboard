@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication Routes...
@@ -28,5 +29,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/change-password', [PasswordController::class, 'edit'])->name('password.edit');
     Route::put('/change-password', [PasswordController::class, 'update'])->name('password.update');
+
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::put('/users/{id}/role', [UserController::class, 'updateRole'])->name('users.update-role');
+    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
 
 });

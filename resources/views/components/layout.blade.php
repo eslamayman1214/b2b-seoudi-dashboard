@@ -33,24 +33,22 @@
                     </div>
                     <div class="hidden md:block">
                         <div class="ml-4 flex items-center md:ml-6">
-                          @auth
-                          @if (Auth::user()->can('upload', App\Models\Product::class))
-                            <a href="/upload-form"
-                                class="{{ request()->is('upload-form') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} rounded-md px-3 py-2 text-sm font-medium">Upload
-                                Excel</a>
-                            <a href="/invite"
-                                class="{{ request()->is('invite') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} rounded-md px-3 py-2 text-sm font-medium">Invite
-                                a new member</a>
-                        @endif
-                         <a href="{{ route('password.edit') }}" 
-                        class="{{ request()->is('change-password') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Change Password</a>    
-                     
-                        <form method="POST" action="/logout" class="inline">
-                            @csrf
-                            <button type="submit"
-                                class="text-gray-300 hover:bg-green-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Logout</button>
-                        </form>
-                    @endauth
+                            @auth
+                                @if (Auth::user()->can('upload', App\Models\Product::class))
+                                    <a href="/upload-form"
+                                        class="{{ request()->is('upload-form') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} rounded-md px-3 py-2 text-sm font-medium">Upload
+                                        Excel</a>
+                                @endif
+                                <a href="{{ route('users.index') }}"
+                                    class="{{ request()->is('users') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Users
+                                    Management</a>
+
+                                <form method="POST" action="/logout" class="inline">
+                                    @csrf
+                                    <button type="submit"
+                                        class="text-gray-300 hover:bg-green-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Logout</button>
+                                </form>
+                            @endauth
                         </div>
                     </div>
                     <div class="-mr-2 flex md:hidden">
@@ -74,7 +72,7 @@
                         <a href="/"
                             class="{{ request()->is('/') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Products
                             board</a>
-                          @if (Auth::user()->can('upload', App\Models\Product::class))
+                        @if (Auth::user()->can('upload', App\Models\Product::class))
                             <a href="/upload-form"
                                 class="{{ request()->is('upload-form') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} rounded-md px-3 py-2 text-sm font-medium">Upload
                                 Excel</a>
@@ -82,8 +80,9 @@
                                 class="{{ request()->is('invite') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} rounded-md px-3 py-2 text-sm font-medium">Invite
                                 a new member</a>
                         @endif
-                        <a href="{{ route('password.edit') }}" 
-                        class="{{ request()->is('change-password') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Change Password</a>    
+                        <a href="{{ route('password.edit') }}"
+                            class="{{ request()->is('change-password') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Change
+                            Password</a>
                         <form method="POST" action="/logout" class="inline">
                             @csrf
                             <button type="submit"
