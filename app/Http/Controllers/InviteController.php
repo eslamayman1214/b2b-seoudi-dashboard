@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\InvitationEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\InvitationEmail;
+use Illuminate\Support\Str;
 
 class InviteController extends Controller
 {
@@ -34,12 +34,12 @@ class InviteController extends Controller
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'password' => Hash::make($password)
-,
+            ,
             'role' => $validatedData['role'],
         ]);
 
         // Redirect the user after sending the invitation
-        Mail::to($user->email)->send(new InvitationEmail($user->name,$user->email,$password));
+        Mail::to($user->email)->send(new InvitationEmail($user->name, $user->email, $password));
         return redirect()->route('products.index')->with('status', 'User added successfully.');
     }
 }

@@ -60,25 +60,24 @@
                         <tr id="user-row-{{ $user->id }}">
                             <td class="border px-4 py-2">{{ $user->name }}</td>
                             <td class="border px-4 py-2">{{ $user->email }}</td>
-                           
-                                <td class="border px-4 py-2">
-                                    <!-- Role Dropdown -->
-                                    <select id="role_{{ $user->id }}" class="border px-2 py-1"
-                                        {{ Auth::user()->role == 'user' ? 'disabled' : '' }}
-                                        {{ $user->id == Auth::user()->id || (Auth::user()->role == 'admin' && $user->role == 'super admin') ? 'disabled' : '' }}>
-                                        <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin
-                                        </option>
-                                        <option value="user" {{ $user->role == 'user' ? 'selected' : '' }}>User
-                                        </option>
-                                        @if ($user->role == 'super admin')
-                                            <option value="super admin" selected disabled>Super Admin</option>
-                                        @endif
-                                        @if (Auth::user()->role == 'super admin' && $user->role != 'super admin')
-                                            <option value="super admin">Super Admin</option>
-                                        @endif
-                                    </select>
-                                </td>
-                           
+
+                            <td class="border px-4 py-2">
+                                <!-- Role Dropdown -->
+                                <select id="role_{{ $user->id }}" class="border px-2 py-1"
+                                    {{ Auth::user()->role == 'user' ? 'disabled' : '' }}
+                                    {{ $user->id == Auth::user()->id || (Auth::user()->role == 'admin' && $user->role == 'super admin') ? 'disabled' : '' }}>
+                                    <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin
+                                    </option>
+                                    <option value="user" {{ $user->role == 'user' ? 'selected' : '' }}>User
+                                    </option>
+                                    @if ($user->role == 'super admin')
+                                        <option value="super admin" selected disabled>Super Admin</option>
+                                    @endif
+                                    @if (Auth::user()->role == 'super admin' && $user->role != 'super admin')
+                                        <option value="super admin">Super Admin</option>
+                                    @endif
+                                </select>
+                            </td>
                             <td class="border px-4 py-2">
                                 @if (Auth::user()->role != 'user' && $user->role != 'super admin' && $user->id != Auth::user()->id)
                                     <button onclick="saveRole({{ $user->id }})"

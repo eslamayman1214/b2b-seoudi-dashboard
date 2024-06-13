@@ -1,16 +1,15 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\validation\ValidationException;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\validation\ValidationException;
 
 class LoginController extends Controller
 {
-     public function create()
+    public function create()
     {
         return view("auth.login");
     }
@@ -24,8 +23,8 @@ class LoginController extends Controller
             'email' => ['required', 'string', 'email', 'max:255'],
             'password' => [
                 'required',
-                //'string',
-                //'min:8',
+                'string',
+                'min:8',
                 //'regex:/[a-z]/', // must include at least one lowercase letter
                 //'regex:/[A-Z]/', // must include at least one uppercase letter
                 //'regex:/[0-9]/', // must include at least one digit

@@ -7,29 +7,29 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-public function index(Request $request)
-{
-    $query = User::query();
+    public function index(Request $request)
+    {
+        $query = User::query();
 
-    // Search by name or email
-    if ($request->filled('search')) {
-        $search = $request->input('search');
-        $query->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%$search%")
-                ->orWhere('email', 'like', "%$search%");
-        });
+        // Search by name or email
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%");
+            });
+        }
+
+        // Filter by roles
+        if ($request->filled('roles')) {
+            $roles = $request->input('roles');
+            $query->whereIn('role', $roles);
+        }
+
+        $users = $query->paginate(20);
+
+        return view('users.index', compact('users'));
     }
-
-    // Filter by roles
-    if ($request->filled('roles')) {
-        $roles = $request->input('roles');
-        $query->whereIn('role', $roles);
-    }
-
-    $users = $query->paginate(20);
-
-    return view('users.index', compact('users'));
-}
 
     public function updateRole(Request $request, $id)
     {

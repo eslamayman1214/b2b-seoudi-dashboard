@@ -2,38 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProductFilterRequest;
 use App\Models\Product;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Http\Requests\ProductFilterRequest;
-use Carbon\Carbon;
-
-
 
 class ProductController extends Controller
 {
-public function index(ProductFilterRequest $request)
-{
-    $query = Product::query();
-    $sku = $request->input('sku');
-    $startDate = $request->input('start_date');
-    $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : null;
-    $sortField = $request->input('sort_field', 'id');
-    $sortDirection = $request->input('sort_direction', 'asc');
+    public function index(ProductFilterRequest $request)
+    {
+        $query = Product::query();
+        $sku = $request->input('sku');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : null;
+        $sortField = $request->input('sort_field', 'id');
+        $sortDirection = $request->input('sort_direction', 'asc');
 
-    if ($sku) {
-        $query->where('sku', 'like', '%' . $sku . '%');
+        if ($sku) {
+            $query->where('sku', 'like', '%' . $sku . '%');
+        }
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('updated_at', [$startDate, $endDate]);
+        }
+
+        $products = $query->orderBy($sortField, $sortDirection)->paginate(50);
+
+        return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection'));
     }
-
-    if ($startDate && $endDate) {
-        $query->whereBetween('updated_at', [$startDate, $endDate]);
-    }
-
-    $products = $query->orderBy($sortField, $sortDirection)->paginate(50);
-
-    return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection'));
-}
-
 
     public function upload(Request $request)
     {

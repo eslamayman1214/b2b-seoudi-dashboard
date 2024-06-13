@@ -17,7 +17,7 @@ class ProductPolicy
 
     public function upload(User $user)
     {
-        return $user->role === 'admin'||$user->role ==='super admin';
+        return $user->role === 'admin' || $user->role === 'super admin';
     }
 
     public function update(User $user)

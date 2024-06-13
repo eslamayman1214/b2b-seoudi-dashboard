@@ -24,22 +24,22 @@ class UserSeeder extends Seeder
             'updated_at' => now(),
         ]);
         DB::table('users')->insert([
-    'name' => 'Admin1',
-    'email' => 'admin1@gmail.com',
-    'password' => Hash::make('admin1@gmail.com'),
-    'role' => 'admin',
-    'created_at' => now(),
-    'updated_at' => now(),
-]);
+            'name' => 'Admin1',
+            'email' => 'admin1@gmail.com',
+            'password' => Hash::make('admin1@gmail.com'),
+            'role' => 'admin',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-DB::table('users')->insert([
-    'name' => 'Admin2',
-    'email' => 'admin2@gmail.com',
-    'password' => Hash::make('admin2@gmail.com'),
-    'role' => 'admin',
-    'created_at' => now(),
-    'updated_at' => now(),
-]);
+        DB::table('users')->insert([
+            'name' => 'Admin2',
+            'email' => 'admin2@gmail.com',
+            'password' => Hash::make('admin2@gmail.com'),
+            'role' => 'admin',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         DB::table('users')->insert([
             'name' => 'Super Admin',
@@ -50,14 +50,13 @@ DB::table('users')->insert([
             'updated_at' => now(),
         ]);
         DB::table('users')->insert([
-    'name' => 'Super Admin1',
-    'email' => 'super-admin1@gmail.com',
-    'password' => Hash::make('super-admin1@gmail.com'),
-    'role' => 'super admin',
-    'created_at' => now(),
-    'updated_at' => now(),
-]);
-
+            'name' => 'Super Admin1',
+            'email' => 'super-admin1@gmail.com',
+            'password' => Hash::make('super-admin1@gmail.com'),
+            'role' => 'super admin',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
     }
 }

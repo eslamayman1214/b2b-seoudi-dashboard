@@ -21,7 +21,7 @@ class InvitationEmail extends Mailable
      * @param string $password
      * @return void
      */
-    public function __construct($name,$email,$password)
+    public function __construct($name, $email, $password)
     {
         $this->name = $name;
         $this->email = $email;
