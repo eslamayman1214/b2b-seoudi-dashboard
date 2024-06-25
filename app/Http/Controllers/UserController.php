@@ -33,24 +33,32 @@ class UserController extends Controller
 
     public function updateRole(Request $request, $id)
     {
-        $user = User::findOrFail($id);
-        $user->role = $request->role;
+        try {
+            $user = User::findOrFail($id);
+            $user->role = $request->role;
 
-        if ($user->save()) {
-            return response()->json(['success' => true]);
-        } else {
-            return response()->json(['success' => false, 'message' => 'Failed to update user role.']);
+            if ($user->save()) {
+                return response()->json(['success' => true]);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Failed to update user role.']);
+            }
+        } catch (\Exception $e) {
+            abort(404);
         }
     }
 
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
+        try {
+            $user = User::findOrFail($id);
 
-        if ($user->delete()) {
-            return response()->json(['success' => true]);
-        } else {
-            return response()->json(['success' => false, 'message' => 'Failed to delete user.']);
+            if ($user->delete()) {
+                return response()->json(['success' => true]);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Failed to delete user.']);
+            }
+        } catch (\Exception $e) {
+            abort(404);
         }
     }
 }

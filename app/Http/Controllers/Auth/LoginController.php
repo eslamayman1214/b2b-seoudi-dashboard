@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\validation\ValidationException;
 
@@ -11,28 +11,15 @@ class LoginController extends Controller
 {
     public function create()
     {
-        return view("auth.login");
+        return view("auth.login")->with('success', 'login viewed successfully.');
     }
-    public function store(Request $request)
+    public function store(LoginRequest $request)
     {
         //validate
         // login the user
         //regenerate session token
         // redirect
-        $attributes = $request->validate([
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'password' => [
-                'required',
-                'string',
-                'min:8',
-                //'regex:/[a-z]/', // must include at least one lowercase letter
-                //'regex:/[A-Z]/', // must include at least one uppercase letter
-                //'regex:/[0-9]/', // must include at least one digit
-                //'regex:/[@$!%*?&#]/', // must include at least one special character
-                //  'confirmed',
-                // password::default(),
-            ],
-        ]);
+        $attributes = $request->validated();
         if (!Auth::attempt($attributes, $request->filled('remember'))) {
             throw ValidationException::withMessages(['email' => 'this may be wrong', 'password' => 'this may be wrong']);
         }

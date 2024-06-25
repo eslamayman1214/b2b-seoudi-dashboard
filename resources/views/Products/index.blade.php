@@ -5,7 +5,8 @@
             <div class="flex items-center space-x-4">
                 <input type="text" name="sku" value="{{ $sku }}" placeholder="Search by SKU..."
                     class="w-full px-4 py-2 border border-gray-300 rounded-md outline-none placeholder-gray-500">
-                <input type="text" id="start_date" name="start_date" value="{{ $startDate }}" placeholder="Start Date"
+                <input type="text" id="start_date" name="start_date" value="{{ $startDate }}"
+                    placeholder="Start Date"
                     class="px-4 py-2 border border-gray-300 rounded-md outline-none placeholder-gray-500">
                 <input type="text" id="end_date" name="end_date" value="{{ $endDate }}" placeholder="End Date"
                     class="px-4 py-2 border border-gray-300 rounded-md outline-none placeholder-gray-500">
@@ -27,11 +28,19 @@
                     <thead>
                         <tr>
                             @php
-                                $fields = ['id' => 'ID', 'item_code' => 'Item Code', 'sku' => 'SKU', 'price' => 'Price', 'stock' => 'Stock', 'updated_at' => 'Last Update'];
+                                $fields = [
+                                    'id' => 'ID',
+                                    'item_code' => 'Item Code',
+                                    'sku' => 'SKU',
+                                    'price' => 'Price',
+                                    'stock' => 'Stock',
+                                    'updated_at' => 'Last Update',
+                                ];
                             @endphp
                             @foreach ($fields as $field => $label)
                                 <th class="py-2 px-4 border-b border-gray-200">
-                                    <a href="?{{ http_build_query(array_merge(request()->all(), ['sort_field' => $field, 'sort_direction' => request('sort_direction') === 'asc' ? 'desc' : 'asc'])) }}">
+                                    <a
+                                        href="?{{ http_build_query(array_merge(request()->all(), ['sort_field' => $field, 'sort_direction' => request('sort_direction') === 'asc' ? 'desc' : 'asc'])) }}">
                                         {{ $label }}
                                         @if (request('sort_field') === $field)
                                             @if (request('sort_direction') === 'asc')

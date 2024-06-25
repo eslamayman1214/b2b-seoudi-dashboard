@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductFilterRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Http\Requests\UploadProductRequest;
 use App\Models\Product;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
@@ -32,10 +33,8 @@ class ProductController extends Controller
         return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection'));
     }
 
-    public function upload(Request $request)
+    public function upload(UploadProductRequest $request)
     {
-        $request->validate(['csv_file' => 'required|mimes:csv,txt']);
-
         $file = $request->file('csv_file');
         $data = Excel::toArray([], $file);
 
@@ -79,21 +78,23 @@ class ProductController extends Controller
 
     public function edit($id)
     {
-        $product = Product::findOrFail($id);
-        return view('products.edit', compact('product'));
+        try {
+            $product = Product::findOrFail($id);
+            return view('products.edit', compact('product'));
+        } catch (\Exception $e) {
+            abort(404);
+            // Redirect to your custom 404 page route
+        }
     }
-    public function update(Request $request, $id)
+    public function update(UpdateProductRequest $request, $id)
     {
-        $request->validate([
-            'item_code' => 'required|string|max:255|unique:products,item_code,' . $id,
-            'sku' => 'required|string|max:255|unique:products,sku,' . $id,
-            'price' => 'required|numeric',
-            'stock' => 'required|numeric',
-        ]);
+        try {
+            $product = Product::findOrFail($id);
+            $product->update($request->validated());
 
-        $product = Product::findOrFail($id);
-        $product->update($request->all());
-
-        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+            return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+        } catch (\Exception $e) {
+            abort(404);
+        }
     }
 }
