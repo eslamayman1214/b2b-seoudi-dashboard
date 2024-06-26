@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\LogHelper;
 use App\Http\Requests\ProductFilterRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\UploadProductRequest;
@@ -29,6 +30,8 @@ class ProductController extends Controller
         }
 
         $products = $query->orderBy($sortField, $sortDirection)->paginate(50);
+
+        LogHelper::logAction('View Products', 'Products page viewed.');
 
         return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection'));
     }
@@ -66,12 +69,15 @@ class ProductController extends Controller
                         ]);
                     }
                 } else {
+                    LogHelper::logAction('Upload CSV Failed', 'Invalid CSV format.');
                     return back()->withErrors(['csv_file' => 'Invalid CSV format.']);
                 }
             }
 
+            LogHelper::logAction('Upload CSV Successful', 'CSV file processed successfully.');
             return back()->with('success', 'CSV file processed successfully.');
         } else {
+            LogHelper::logAction('Upload CSV Failed', 'No data found in the CSV file.');
             return back()->withErrors(['csv_file' => 'No data found in the CSV file.']);
         }
     }
@@ -80,20 +86,25 @@ class ProductController extends Controller
     {
         try {
             $product = Product::findOrFail($id);
+            LogHelper::logAction('Edit Product', "Edit product page viewed for product ID: {$id}");
             return view('products.edit', compact('product'));
         } catch (\Exception $e) {
+            LogHelper::logAction('Edit Product Failed', "Product not found with ID: {$id}");
             abort(404);
-            // Redirect to your custom 404 page route
         }
     }
+
     public function update(UpdateProductRequest $request, $id)
     {
         try {
             $product = Product::findOrFail($id);
             $product->update($request->validated());
 
+            LogHelper::logAction('Update Product', "Product updated with ID: {$id}");
+
             return redirect()->route('products.index')->with('success', 'Product updated successfully.');
         } catch (\Exception $e) {
+            LogHelper::logAction('Update Product Failed', "Failed to update product with ID: {$id}. Error: {$e->getMessage()}");
             abort(404);
         }
     }

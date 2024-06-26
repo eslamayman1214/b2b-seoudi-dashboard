@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\LogHelper;
 use App\Http\Requests\InviteRequest;
 use App\Mail\InvitationEmail;
 use App\Models\User;
@@ -13,17 +14,13 @@ class InviteController extends Controller
 {
     public function create()
     {
+        LogHelper::logAction('View Invite Page', 'Invite page viewed.');
         return view('auth.invite');
     }
 
     public function send(InviteRequest $request)
     {
-        // Validate the incoming request data
         $validatedData = $request->validated();
-
-        // Create the user account
-        //$password = Str::random(10); // Generate a random password
-        //$hashedPassword = Hash::make($password); // Hash the password
         $password = Str::random(10);
         $user = User::create([
             'name' => $validatedData['name'],
@@ -32,9 +29,9 @@ class InviteController extends Controller
             'role' => $validatedData['role'],
         ]);
 
-        // Redirect the user after sending the invitation
         Mail::to($user->email)->send(new InvitationEmail($user->name, $user->email, $password));
+        LogHelper::logAction('Invite User', "Invited user: {$user->email}");
+
         return redirect()->route('products.index')->with('status', 'User added successfully.');
     }
-
 }
