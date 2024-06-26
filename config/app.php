@@ -65,7 +65,7 @@ return [
     |
      */
 
-    'timezone' => env('APP_TIMEZONE', 'UTC'),
+    'timezone' => 'Africa/Cairo',
 
     /*
     |--------------------------------------------------------------------------
@@ -122,7 +122,5 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-
- 
 
 ];
