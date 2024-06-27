@@ -17,16 +17,16 @@ class UserSeeder extends Seeder
     {
         DB::table('users')->insert([
             'name' => 'Admin',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('admin@gmail.com'),
+            'email' => 'admin@seoudisupermarket.com',
+            'password' => Hash::make('admin@seoudisupermarket.com'),
             'role' => 'admin',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
         DB::table('users')->insert([
             'name' => 'Admin1',
-            'email' => 'admin1@gmail.com',
-            'password' => Hash::make('admin1@gmail.com'),
+            'email' => 'admin1@seoudisupermarket.com',
+            'password' => Hash::make('admin1@seoudisupermarket.com'),
             'role' => 'admin',
             'created_at' => now(),
             'updated_at' => now(),
@@ -34,8 +34,8 @@ class UserSeeder extends Seeder
 
         DB::table('users')->insert([
             'name' => 'Admin2',
-            'email' => 'admin2@gmail.com',
-            'password' => Hash::make('admin2@gmail.com'),
+            'email' => 'admin2@seoudisupermarket.com',
+            'password' => Hash::make('admin2@seoudisupermarket.com'),
             'role' => 'admin',
             'created_at' => now(),
             'updated_at' => now(),
@@ -43,16 +43,16 @@ class UserSeeder extends Seeder
 
         DB::table('users')->insert([
             'name' => 'Super Admin',
-            'email' => 'super-admin@gmail.com',
-            'password' => Hash::make('super-admin@gmail.com'),
+            'email' => 'super-admin@seoudisupermarket.com',
+            'password' => Hash::make('super-admin@seoudisupermarket.com'),
             'role' => 'super admin',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
         DB::table('users')->insert([
             'name' => 'Super Admin1',
-            'email' => 'super-admin1@gmail.com',
-            'password' => Hash::make('super-admin1@gmail.com'),
+            'email' => 'super-admin1@seoudisupermarket.com',
+            'password' => Hash::make('super-admin1@seoudisupermarket.com'),
             'role' => 'super admin',
             'created_at' => now(),
             'updated_at' => now(),

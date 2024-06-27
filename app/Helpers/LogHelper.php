@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Models\Configuration;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -9,13 +10,20 @@ class LogHelper
 {
     public static function logAction($action, $details)
     {
-        $user = Auth::user();
-        $username = $user ? $user->name : 'Guest';
-        $role = $user ? $user->role : 'N/A';
-        $time = now()->toDateTimeString();
+        $loggingEnabled = Configuration::where('key', 'logging_enabled')->value('value');
 
-        $logMessage = "[{$time}] User: {$username}, Role: {$role}, Action: {$action}, Details: {$details}";
+        if ($loggingEnabled) {
+            $time = now()->toDateTimeString();
+            $user = Auth::user();
 
-        Log::channel('actionlog')->info($logMessage);
+            if ($user) {
+                $logEntry = "{$time} | User: {$user->name} | Role: {$user->role} | Action: {$action} | Details: {$details}\n";
+            } else {
+                $logEntry = "{$time} | User: Guest | Action: {$action} | Details: {$details}\n";
+            }
+
+            Log::channel('actionlog')->info($logEntry);
+
+        }
     }
 }

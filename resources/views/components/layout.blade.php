@@ -10,6 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link rel="icon" href="https://www.stjegypt.com/uploads/723201832723.jpg" type="image/jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body class="bg-gray-100">
@@ -25,10 +26,6 @@
                         @auth
                             <div class="hidden md:block">
                                 <div class="ml-10 flex items-baseline space-x-4">
-                                    <a href="/"
-                                        class="{{ request()->is('/') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} rounded-md px-3 py-2 text-sm font-medium">
-                                        Products board
-                                    </a>
                                     <div class="flex items-center space-x-2">
                                         <span class="text-gray-700"><b>Welcome back,</b></span>
                                         <span class="font-semibold text-gray-800"><b>{{ Auth::user()->name }}!</b></span>
@@ -40,6 +37,10 @@
                     <div class="hidden md:block">
                         <div class="ml-4 flex items-center md:ml-6">
                             @auth
+                                <a href="/"
+                                    class="{{ request()->is('/') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} rounded-md px-3 py-2 text-sm font-medium">
+                                    Products board
+                                </a>
                                 @if (Auth::user()->can('upload', App\Models\Product::class))
                                     <a href="/upload-form"
                                         class="{{ request()->is('upload-form') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} rounded-md px-3 py-2 text-sm font-medium">Upload
@@ -48,7 +49,10 @@
                                 <a href="{{ route('users.index') }}"
                                     class="{{ request()->is('users') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Users
                                     Management</a>
-
+                                @if (Auth::user()->role === 'super admin')
+                                    <a href="/settings"
+                                        class="{{ request()->is('settings') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Settings</a>
+                                @endif
                                 <form method="POST" action="/logout" class="inline">
                                     @csrf
                                     <button type="submit"

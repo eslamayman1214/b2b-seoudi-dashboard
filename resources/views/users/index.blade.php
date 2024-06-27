@@ -20,28 +20,7 @@
             </div>
         @endif
 
-        <form action="{{ route('users.index') }}" method="GET" class="mb-4">
-            <div class="flex items-center space-x-4">
-                <input type="text" name="search" placeholder="Search by name or email"
-                    class="border px-4 py-2 rounded">
-                <div>
-                    <label class="inline-flex items-center">
-                        <input type="checkbox" name="roles[]" value="admin" class="form-checkbox">
-                        <span class="ml-2">Admin</span>
-                    </label>
-                    <label class="inline-flex items-center">
-                        <input type="checkbox" name="roles[]" value="user" class="form-checkbox">
-                        <span class="ml-2">User</span>
-                    </label>
-                    <label class="inline-flex items-center">
-                        <input type="checkbox" name="roles[]" value="super admin" class="form-checkbox">
-                        <span class="ml-2">Super Admin</span>
-                    </label>
-                </div>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Filter</button>
-                <a href="/users" class="px-4 py-2 bg-gray-400 hover:bg-gray-500">reset filters</a>
-            </div>
-        </form>
+        <!-- Rest of the user management table and content -->
 
         <div class="overflow-x-auto">
             <table class="table-auto w-full">
@@ -60,9 +39,7 @@
                         <tr id="user-row-{{ $user->id }}">
                             <td class="border px-4 py-2">{{ $user->name }}</td>
                             <td class="border px-4 py-2">{{ $user->email }}</td>
-
                             <td class="border px-4 py-2">
-                                <!-- Role Dropdown -->
                                 <select id="role_{{ $user->id }}" class="border px-2 py-1"
                                     {{ Auth::user()->role == 'user' ? 'disabled' : '' }}
                                     {{ $user->id == Auth::user()->id || (Auth::user()->role == 'admin' && $user->role == 'super admin') ? 'disabled' : '' }}>
@@ -98,19 +75,16 @@
             </table>
         </div>
 
-        <!-- Pagination Links -->
         <div class="mt-4">
             {{ $users->links() }}
         </div>
 
     </div>
 
-    <!-- JavaScript for Handling Actions -->
     <script>
         function saveRole(userId) {
             var role = document.getElementById('role_' + userId).value;
 
-            // Send AJAX request to update user role in the database
             fetch('/users/' + userId + '/role', {
                     method: 'PUT',
                     headers: {
@@ -124,7 +98,7 @@
                 .then(response => {
                     if (response.ok) {
                         alert('User role updated successfully.');
-                        location.reload(); // Reload the page to instantly update the list
+                        location.reload();
                     } else {
                         throw new Error('Failed to update user role.');
                     }
@@ -137,7 +111,6 @@
 
         function confirmDelete(userId) {
             if (confirm('Are you sure you want to delete this user?')) {
-                // Send AJAX request to delete user from the database
                 fetch('/users/' + userId, {
                         method: 'DELETE',
                         headers: {
@@ -148,7 +121,7 @@
                     .then(response => {
                         if (response.ok) {
                             alert('User deleted successfully.');
-                            document.getElementById('user-row-' + userId).remove(); // Remove the user from the UI
+                            document.getElementById('user-row-' + userId).remove();
                         } else {
                             throw new Error('Failed to delete user.');
                         }
@@ -160,5 +133,4 @@
             }
         }
     </script>
-
 </x-layout>
