@@ -20,6 +20,7 @@ class ProductController extends Controller
         $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : null;
         $sortField = $request->input('sort_field', 'id');
         $sortDirection = $request->input('sort_direction', 'asc');
+        $perPage = $request->input('per_page', 25); // Default to 25 items per page if not provided
 
         if ($sku) {
             $query->where('sku', 'like', '%' . $sku . '%');
@@ -29,11 +30,11 @@ class ProductController extends Controller
             $query->whereBetween('updated_at', [$startDate, $endDate]);
         }
 
-        $products = $query->orderBy($sortField, $sortDirection)->paginate(50);
+        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
 
         LogHelper::logAction('View Products', 'Products page viewed.');
 
-        return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection'));
+        return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection', 'perPage'));
     }
 
     public function upload(UploadProductRequest $request)

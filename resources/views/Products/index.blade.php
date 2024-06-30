@@ -14,7 +14,7 @@
                     Filter
                 </button>
                 <a href="/" class="px-4 py-2 bg-gray-200 hover:bg-gray-300">
-                    Clear
+                    Reset
                 </a>
             </div>
         </form>
@@ -86,9 +86,25 @@
                 </table>
             </div>
 
-            <!-- Pagination Links -->
-            <div class="mt-4">
-                {{ $products->links() }}
+            <!-- Pagination Links and Items Per Page Dropdown -->
+            <div class="flex items-center justify-between mt-4">
+                <div class="flex items-center">
+                    <label for="per_page" class="mr-2">Items per page:</label>
+                    <form action="/" method="GET">
+                        <select name="per_page" id="per_page" onchange="this.form.submit()"
+                            class="px-4 py-2 border border-gray-300 rounded-md outline-none">
+                            <option value="25"{{ request('per_page') == 25 ? ' selected' : '' }}>25</option>
+                            <option value="50"{{ request('per_page') == 50 ? ' selected' : '' }}>50</option>
+                            <option value="100"{{ request('per_page') == 100 ? ' selected' : '' }}>100</option>
+                        </select>
+                        @foreach (request()->except('per_page') as $key => $value)
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                        @endforeach
+                    </form>
+                </div>
+                <div>
+                    {{ $products->appends(['per_page' => $perPage])->links() }}
+                </div>
             </div>
         @endif
     </div>
