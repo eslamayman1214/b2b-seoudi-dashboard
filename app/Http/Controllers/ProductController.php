@@ -36,7 +36,10 @@ class ProductController extends Controller
 
         return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection', 'perPage'));
     }
+    public function uploadfile(){
+        return view('products.upload');
 
+    }
     public function upload(UploadProductRequest $request)
     {
         $file = $request->file('csv_file');
@@ -107,6 +110,41 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             LogHelper::logAction('Update Product Failed', "Failed to update product with ID: {$id}. Error: {$e->getMessage()}");
             abort(404);
+        }
+    }
+    // API to view all products
+    public function apiIndex(ProductFilterRequest $request)
+    {
+        $query = Product::query();
+        $sku = $request->input('sku');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : null;
+        $sortField = $request->input('sort_field', 'id');
+        $sortDirection = $request->input('sort_direction', 'asc');
+        $perPage = $request->input('per_page', 25); // Default to 25 items per page if not provided
+
+        if ($sku) {
+            $query->where('sku', 'like', '%' . $sku . '%');
+        }
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('updated_at', [$startDate, $endDate]);
+        }
+
+        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
+
+        return response()->json($products);
+    }
+    // API to update a product
+    public function apiUpdate(UpdateProductRequest $request, $id)
+    {
+        try {
+            $product = Product::findOrFail($id);
+            $product->update($request->validated());
+
+            return response()->json(['message' => 'Product updated successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Product not found.'], 404);
         }
     }
 }

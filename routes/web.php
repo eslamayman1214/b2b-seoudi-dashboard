@@ -16,10 +16,7 @@ Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [ProductController::class, 'index'])->name('products.index');
 
-    Route::get('/upload-form', function () {
-        return view('products.upload');
-    })->name('products.upload-form');
-
+    Route::get('/upload-form', [ProductController::class, 'uploadfile'])->name('products.upload-form');
     Route::post('/products/upload', [ProductController::class, 'upload'])->name('products.upload');
 
     Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
@@ -38,4 +35,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings/toggleLogging', [SettingController::class, 'toggleLogging'])->name('settings.toggleLogging');
 
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/api/products', [ProductController::class, 'apiIndex']);
+    });
+    Route::middleware('auth:api')->group(function () {
+        Route::put('/api/products/{id}', [ProductController::class, 'apiupdate']);
+    });
+    Route::post('/api/login', [LoginController::class, 'apiStore']);
+    Route::post('/api/logout', [LoginController::class, 'apiDestroy']);
 });
