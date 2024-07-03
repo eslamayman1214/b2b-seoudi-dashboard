@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication Routes...
+Route::post('/api/login', [LoginController::class, 'apiStore']);
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store']);
 Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
@@ -41,6 +42,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('auth:api')->group(function () {
         Route::put('/api/products/{id}', [ProductController::class, 'apiupdate']);
     });
-    Route::post('/api/login', [LoginController::class, 'apiStore']);
+   
     Route::post('/api/logout', [LoginController::class, 'apiDestroy']);
 });
