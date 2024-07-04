@@ -4,7 +4,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+//use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \Illuminate\Session\Middleware\StartSession::class;
         // \Illuminate\Session\Middleware\AuthenticateSession::class,
         \Illuminate\View\Middleware\ShareErrorsFromSession::class;
-        VerifyCsrfToken::class;
+        //VerifyCsrfToken::class;
         \Illuminate\Routing\Middleware\SubstituteBindings::class;
         \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class;
         \Illuminate\Routing\Middleware\SubstituteBindings::class;
