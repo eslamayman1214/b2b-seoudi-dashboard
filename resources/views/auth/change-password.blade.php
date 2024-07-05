@@ -1,5 +1,5 @@
-<!-- resources/views/auth/change-password.blade.php -->
 <x-layout>
+    @section('title', 'change-password')
     <div class="container mx-auto mt-8">
         <div class="max-w-md mx-auto bg-white p-8 border border-gray-300">
             <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Change Password</h2>

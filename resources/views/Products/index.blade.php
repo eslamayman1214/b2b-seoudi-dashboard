@@ -1,4 +1,5 @@
 <x-layout>
+    @section('title', 'Home')
     <div class="container mx-auto px-4 py-8">
         <!-- Filter and Search Bar -->
         <form action="/" method="GET" class="mb-4">

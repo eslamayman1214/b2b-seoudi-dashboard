@@ -53,7 +53,7 @@ class LoginController extends Controller
 
     return response()->json(['message' => 'Unauthorized'], 401);
 }
-    public function apiDestroy(Request $request)
+   /* public function apiDestroy(Request $request)
     {
         $user = $request->user();
         if ($user && $user->currentAccessToken()) {
@@ -63,6 +63,6 @@ class LoginController extends Controller
         LogHelper::logAction('Logout', "User logged out: {$user->email}");
 
         return response()->json(['message' => 'Logged out successfully.'], 200);
-    }
+    }*/
 
 }

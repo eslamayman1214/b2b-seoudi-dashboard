@@ -1,4 +1,5 @@
 <x-layout>
+    @section('title', 'upload-csv')
     <div class="container mx-auto py-12">
         <div class="max-w-lg mx-auto bg-white shadow-lg rounded-lg">
             <div class="px-6 py-4">
