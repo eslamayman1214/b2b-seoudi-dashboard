@@ -17,7 +17,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [ProductController::class, 'index'])->name('products.index');
     Route::get('upload-form', [ProductController::class, 'uploadfile'])->name('products.upload-form');
 
-    Route::prefix('products')->group(function () { 
+    Route::prefix('products')->group(function () {
         Route::post('upload', [ProductController::class, 'upload'])->name('products.upload');
         Route::get('{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
         Route::put('{id}', [ProductController::class, 'update'])->name('products.update');
@@ -39,7 +39,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('settings.index');
         Route::post('toggleLogging', [SettingController::class, 'toggleLogging'])->name('settings.toggleLogging');
     });
-    
+
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
 });

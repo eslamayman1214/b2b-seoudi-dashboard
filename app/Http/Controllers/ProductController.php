@@ -2,98 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\LogHelper;
 use App\Http\Requests\ProductFilterRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\UploadProductRequest;
-use App\Models\Product;
-use Carbon\Carbon;
+use App\Services\LogService;
+use App\Services\ProductService;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
+    protected $productService;
+    protected $logService;
+
+    public function __construct(ProductService $productService, LogService $logService)
+    {
+        $this->productService = $productService;
+        $this->logService = $logService;
+    }
     public function index(ProductFilterRequest $request)
     {
-        $query = Product::query();
+        $products = $this->productService->getProducts($request);
+
+        // Extract variables from the request
         $sku = $request->input('sku');
         $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : null;
+        $endDate = $request->input('end_date');
         $sortField = $request->input('sort_field', 'id');
         $sortDirection = $request->input('sort_direction', 'asc');
-        $perPage = $request->input('per_page', 25); // Default to 25 items per page if not provided
+        $perPage = $request->input('per_page', 25);
 
-        if ($sku) {
-            $query->where('sku', 'like', '%' . $sku . '%');
-        }
-
-        if ($startDate && $endDate) {
-            $query->whereBetween('updated_at', [$startDate, $endDate]);
-        }
-
-        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
-
-        LogHelper::logAction('View Products', 'Products page viewed.');
+        // Log the action
+        $this->logService->logAction('View Products', 'Products page viewed.');
 
         return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection', 'perPage'));
     }
-    public function uploadfile(){
-        return view('products.upload');
 
+    public function uploadfile()
+    {
+        return view('products.upload');
     }
     public function upload(UploadProductRequest $request)
     {
-        $file = $request->file('csv_file');
-        $data = Excel::toArray([], $file);
+        try {
+            $file = $request->file('csv_file');
+            $data = Excel::toArray([], $file)[0] ?? [];
 
-        if (isset($data[0])) {
-            foreach ($data[0] as $index => $row) {
-                if ($index === 0) {
-                    continue; // Skip header row
-                }
+            $this->productService->uploadProducts($data);
 
-                if (isset($row[0]) && isset($row[1]) && isset($row[2]) && isset($row[3])) {
-                    // Check if the record exists by SKU or Item Code
-                    $existingProduct = Product::where('sku', $row[1])->orWhere('item_code', $row[0])->first();
-
-                    if ($existingProduct) {
-                        // Update the existing product
-                        $existingProduct->update([
-                            'sku' => $row[1],
-                            'item_code' => $row[0],
-                            'price' => $row[2],
-                            'stock' => $row[3],
-                        ]);
-                    } else {
-                        // Create a new product
-                        Product::create([
-                            'sku' => $row[1],
-                            'item_code' => $row[0],
-                            'price' => $row[2],
-                            'stock' => $row[3],
-                        ]);
-                    }
-                } else {
-                    LogHelper::logAction('Upload CSV Failed', 'Invalid CSV format.');
-                    return back()->withErrors(['csv_file' => 'Invalid CSV format.']);
-                }
-            }
-
-            LogHelper::logAction('Upload CSV Successful', 'CSV file processed successfully.');
+            $this->logService->logAction('Upload CSV Successful', 'CSV file processed successfully.');
             return back()->with('success', 'CSV file processed successfully.');
-        } else {
-            LogHelper::logAction('Upload CSV Failed', 'No data found in the CSV file.');
-            return back()->withErrors(['csv_file' => 'No data found in the CSV file.']);
+        } catch (\Exception $e) {
+            $this->logService->logAction('Upload CSV Failed', $e->getMessage());
+            return back()->withErrors(['csv_file' => $e->getMessage()]);
         }
     }
 
     public function edit($id)
     {
         try {
-            $product = Product::findOrFail($id);
-            LogHelper::logAction('Edit Product', "Edit product page viewed for product ID: {$id}");
+            $product = $this->productService->findProduct($id);
+            $this->logService->logAction('Edit Product', "Edit product page viewed for product ID: {$id}");
             return view('products.edit', compact('product'));
         } catch (\Exception $e) {
-            LogHelper::logAction('Edit Product Failed', "Product not found with ID: {$id}");
+            $this->logService->logAction('Edit Product Failed', $e->getMessage());
             abort(404);
         }
     }
@@ -101,47 +72,26 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, $id)
     {
         try {
-            $product = Product::findOrFail($id);
-            $product->update($request->validated());
+            $product = $this->productService->updateProduct($request, $id);
 
-            LogHelper::logAction('Update Product', "Product updated with ID: {$id}");
-
+            $this->logService->logAction('Update Product', "Product updated with ID: {$id}");
             return redirect()->route('products.index')->with('success', 'Product updated successfully.');
         } catch (\Exception $e) {
-            LogHelper::logAction('Update Product Failed', "Failed to update product with ID: {$id}. Error: {$e->getMessage()}");
+            $this->logService->logAction('Update Product Failed', $e->getMessage());
             abort(404);
         }
     }
-    // API to view all products
+
     public function apiIndex(ProductFilterRequest $request)
     {
-        $query = Product::query();
-        $sku = $request->input('sku');
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date'))->endOfDay() : null;
-        $sortField = $request->input('sort_field', 'id');
-        $sortDirection = $request->input('sort_direction', 'asc');
-        $perPage = $request->input('per_page', 25); // Default to 25 items per page if not provided
-
-        if ($sku) {
-            $query->where('sku', 'like', '%' . $sku . '%');
-        }
-
-        if ($startDate && $endDate) {
-            $query->whereBetween('updated_at', [$startDate, $endDate]);
-        }
-
-        $products = $query->orderBy($sortField, $sortDirection)->paginate($perPage);
-
+        $products = $this->productService->getProducts($request);
         return response()->json($products);
     }
-    // API to update a product
+
     public function apiUpdate(UpdateProductRequest $request, $id)
     {
         try {
-            $product = Product::findOrFail($id);
-            $product->update($request->validated());
-
+            $product = $this->productService->updateProduct($request, $id);
             return response()->json(['message' => 'Product updated successfully.']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Product not found.'], 404);

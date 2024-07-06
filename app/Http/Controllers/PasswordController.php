@@ -4,31 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Helpers\LogHelper;
 use App\Http\Requests\ChangePasswordRequest;
+use App\Services\PasswordService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class PasswordController extends Controller
 {
+    protected $passwordService;
+    protected $logService;
+
+    public function __construct(PasswordService $passwordService, LogHelper $logService)
+    {
+        $this->passwordService = $passwordService;
+        $this->logService = $logService;
+    }
+
     public function edit()
     {
-        LogHelper::logAction('View Change Password Page', 'Change password page viewed.');
-        return view('auth.change-password');
+        $this->logService->logAction('View Change Password Page', 'Change password page viewed.');
+        return $this->passwordService->showChangePasswordPage();
     }
 
     public function update(ChangePasswordRequest $request)
     {
-        $user = Auth::user();
-
-        if (!Hash::check($request->old_password, $user->password)) {
-            LogHelper::logAction('Change Password Failed', "Incorrect old password for user: {$user->email}");
-            return back()->withErrors(['old_password' => 'The old password is incorrect.']);
-        }
-
-        $user->update([
-            'password' => Hash::make($request->new_password),
-        ]);
-
-        LogHelper::logAction('Change Password Successful', "Password changed for user: {$user->email}");
-        return redirect()->route('products.index')->with('success', 'Password changed successfully.');
+        $this->logService->logAction('Change Password Attempt', "Change password attempt for user: " . Auth::user()->email);
+        return $this->passwordService->changePassword($request);
     }
 }

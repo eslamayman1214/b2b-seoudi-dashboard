@@ -3,38 +3,35 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\LogHelper;
-use App\Models\Configuration;
+use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SettingController extends Controller
 {
+    protected $settingService;
+    protected $logService;
+
+    public function __construct(SettingService $settingService, LogHelper $logService)
+    {
+        $this->settingService = $settingService;
+        $this->logService = $logService;
+    }
+
     public function index()
     {
-        $loggingConfig = Configuration::where('key', 'logging_enabled')->first();
-        $loggingEnabled = $loggingConfig ? $loggingConfig->value == '1' : false;
-
-        // Log the action of viewing the settings page
+        $settings = $this->settingService->getSettings();
         $user = Auth::user();
-        $details = "Settings page viewed by user ID: {$user->id}, Name: {$user->name}, Email: {$user->email}.";
-        LogHelper::logAction('View Settings', $details);
-
-        return view('settings.index', compact('loggingEnabled'));
+        $this->logService->logAction('View Settings', "Settings page viewed by user ID: {$user->id}, Name: {$user->name}, Email: {$user->email}.");
+        return view('settings.index', $settings);
     }
 
     public function toggleLogging(Request $request)
     {
-        $loggingConfig = Configuration::firstOrCreate(['key' => 'logging_enabled']);
-        $newValue = $request->input('logging') == '1' ? '1' : '0';
-        $loggingConfig->value = $newValue;
-        $loggingConfig->save();
-
-        // Log the action of enabling/disabling logging
+        $newValue = $this->settingService->toggleLogging($request);
         $user = Auth::user();
         $action = $newValue == '1' ? 'Enable Logging' : 'Disable Logging';
-        $details = "Logging status changed to {$newValue} by user ID: {$user->id}, Name: {$user->name}, Email: {$user->email}.";
-        LogHelper::logAction($action, $details);
-
+        $this->logService->logAction($action, "Logging status changed to {$newValue} by user ID: {$user->id}, Name: {$user->name}, Email: {$user->email}.");
         return redirect()->route('settings.index')->with('success', 'Logging status updated successfully.');
     }
 }

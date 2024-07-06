@@ -4,34 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Helpers\LogHelper;
 use App\Http\Requests\InviteRequest;
-use App\Mail\InvitationEmail;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
+use App\Services\InviteService;
 
 class InviteController extends Controller
 {
+    protected $inviteService;
+    protected $logService;
+
+    public function __construct(InviteService $inviteService, LogHelper $logService)
+    {
+        $this->inviteService = $inviteService;
+        $this->logService = $logService;
+    }
+
     public function create()
     {
-        LogHelper::logAction('View Invite Page', 'Invite page viewed.');
-        return view('auth.invite');
+        $this->logService->logAction('View Invite Page', 'Invite page viewed.');
+        return $this->inviteService->showInvitePage();
     }
 
     public function send(InviteRequest $request)
     {
-        $validatedData = $request->validated();
-        $password = Str::random(10);
-        $user = User::create([
-            'name' => $validatedData['name'],
-            'email' => $validatedData['email'],
-            'password' => Hash::make($password),
-            'role' => $validatedData['role'],
-        ]);
-
-        Mail::to($user->email)->send(new InvitationEmail($user->name, $user->email, $password));
-        LogHelper::logAction('Invite User', "Invited user: {$user->email}");
-
-        return redirect()->route('products.index')->with('status', 'User added successfully.');
+        $this->logService->logAction('Invite User', "Invited user: {$request->email}");
+        return $this->inviteService->sendInvite($request);
     }
 }

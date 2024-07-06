@@ -5,64 +5,54 @@ namespace App\Http\Controllers\Auth;
 use App\Helpers\LogHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
-use Illuminate\Http\Request;
+use App\Services\LoginService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
+    protected $loginService;
+    protected $logService;
+
+    public function __construct(LoginService $loginService, LogHelper $logService)
+    {
+        $this->loginService = $loginService;
+        $this->logService = $logService;
+    }
+
     public function create()
     {
-        LogHelper::logAction('View Login Page', 'Login page viewed.');
-        return view("auth.login")->with('success', 'Login viewed successfully.');
+        $this->logService->logAction('View Login Page', 'Login page viewed.');
+        return $this->loginService->showLoginPage();
     }
+
     public function store(LoginRequest $request)
     {
-        $attributes = $request->validated();
-        if (!Auth::attempt($attributes, $request->filled('remember'))) {
-            LogHelper::logAction('Login Failed', "Failed login attempt for email: {$request->email}");
-            throw ValidationException::withMessages(['email' => 'This may be wrong', 'password' => 'This may be wrong']);
-        }
-        $request->session()->regenerate();
-        LogHelper::logAction('Login Successful', "User logged in: {$request->email}");
-        return redirect('/');
+        $this->logService->logAction('Login Attempt', "Login attempt for email: {$request->email}");
+        return $this->loginService->loginUser($request);
     }
-        public function destroy()
+
+    public function destroy()
     {
         $user = Auth::user();
-        LogHelper::logAction('Logout', "User logged out: {$user->email}");
-        Auth::logout();
-        return redirect('/login');
+        $this->logService->logAction('Logout', "User logged out: {$user->email}");
+        return $this->loginService->logoutUser();
     }
 
+    public function apiStore(LoginRequest $request)
+    {
+        return $this->loginService->apiLoginUser($request);
+    }
 
-
-     public function apiStore(LoginRequest $request)
+    /* public function apiDestroy(Request $request)
 {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
-
-    if (Auth::attempt($request->only('email', 'password'))) {
-        $user = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json(['access_token' => $token, 'token_type' => 'Bearer']);
-    }
-
-    return response()->json(['message' => 'Unauthorized'], 401);
+$user = $request->user();
+if ($user && $user->currentAccessToken()) {
+$user->currentAccessToken()->delete();
 }
-   /* public function apiDestroy(Request $request)
-    {
-        $user = $request->user();
-        if ($user && $user->currentAccessToken()) {
-            $user->currentAccessToken()->delete();
-        }
 
-        LogHelper::logAction('Logout', "User logged out: {$user->email}");
+LogHelper::logAction('Logout', "User logged out: {$user->email}");
 
-        return response()->json(['message' => 'Logged out successfully.'], 200);
-    }*/
+return response()->json(['message' => 'Logged out successfully.'], 200);
+}*/
 
 }
