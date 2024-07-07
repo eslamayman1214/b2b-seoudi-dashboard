@@ -12,13 +12,8 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
-    protected $productService;
-    protected $logService;
-
-    public function __construct(ProductService $productService, LogService $logService)
+    public function __construct(private ProductService $productService, private LogService $logService)
     {
-        $this->productService = $productService;
-        $this->logService = $logService;
     }
     public function index(ProductFilterRequest $request)
     {

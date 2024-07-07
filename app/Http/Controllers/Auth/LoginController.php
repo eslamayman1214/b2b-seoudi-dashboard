@@ -10,13 +10,8 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    protected $loginService;
-    protected $logService;
-
-    public function __construct(LoginService $loginService, LogHelper $logService)
+    public function __construct(private LoginService $loginService, private LogHelper $logService)
     {
-        $this->loginService = $loginService;
-        $this->logService = $logService;
     }
 
     public function create()

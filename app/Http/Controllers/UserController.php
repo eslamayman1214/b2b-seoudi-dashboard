@@ -8,13 +8,8 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    protected $userService;
-    protected $logService;
-
-    public function __construct(UserService $userService, LogHelper $logService)
+    public function __construct(private UserService $userService, private LogHelper $logService)
     {
-        $this->userService = $userService;
-        $this->logService = $logService;
     }
 
     public function index(Request $request)

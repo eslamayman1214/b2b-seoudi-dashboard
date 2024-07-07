@@ -9,13 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class PasswordController extends Controller
 {
-    protected $passwordService;
-    protected $logService;
-
-    public function __construct(PasswordService $passwordService, LogHelper $logService)
+    public function __construct(private PasswordService $passwordService, private LogHelper $logService)
     {
-        $this->passwordService = $passwordService;
-        $this->logService = $logService;
     }
 
     public function edit()

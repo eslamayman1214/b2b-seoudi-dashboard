@@ -9,13 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class SettingController extends Controller
 {
-    protected $settingService;
-    protected $logService;
-
-    public function __construct(SettingService $settingService, LogHelper $logService)
+    public function __construct(private SettingService $settingService, private LogHelper $logService)
     {
-        $this->settingService = $settingService;
-        $this->logService = $logService;
     }
 
     public function index()
