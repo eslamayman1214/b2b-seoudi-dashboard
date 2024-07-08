@@ -1,17 +1,16 @@
 <?php
 
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\ProductController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Route;
 
 // API Authentication Routes...
-Route::post('login', [LoginController::class, 'apiStore']);
-//Route::post('logout', [LoginController::class, 'apiDestroy']);
+Route::post('login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {    
+Route::middleware('auth:sanctum')->group(function () {
     // API Routes
     Route::prefix('products')->group(function () {
-        Route::get('/', [ProductController::class, 'apiIndex']);
-        Route::put('{id}', [ProductController::class, 'apiUpdate'])->middleware('auth:api');
-    });   
+        Route::get('/', [ProductController::class, 'index']);
+        Route::put('{id}', [ProductController::class, 'update'])->middleware('auth:api');
+    });
 });

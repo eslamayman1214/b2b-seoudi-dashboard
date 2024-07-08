@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\LoginRequest;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
@@ -13,7 +14,7 @@ class LoginService
         return view("auth.login")->with('success', 'Login viewed successfully.');
     }
 
-    public function loginUser(Request $request)
+    public function loginUser(LoginRequest $request)
     {
         $attributes = $request->validated();
         if (!Auth::attempt($attributes, $request->filled('remember'))) {
@@ -33,20 +34,23 @@ class LoginService
         return redirect('/login');
     }
 
-    public function apiLoginUser(Request $request)
+    public function apiLoginUser(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        $validated = $request->validated();
 
-        if (Auth::attempt($request->only('email', 'password'))) {
+        if (Auth::attempt($validated)) {
             $user = Auth::user();
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json(['access_token' => $token, 'token_type' => 'Bearer']);
         }
 
-        return response()->json(['message' => 'Unauthorized'], 401);
+        // If the email exists but the password is incorrect
+        if (User::where('email', $request->input('email'))->exists()) {
+            return response()->json(['message' => 'The email or password is not correct'], 401);
+        }
+
+        // If the email does not exist or is invalid
+        return response()->json(['message' => 'The email you entered is not valid'], 400);
     }
 }

@@ -36,6 +36,6 @@ class EmailDomain implements Rule
      */
     public function message()
     {
-        return 'Enter a valid email';
+        return 'The email you entered is not valid.';
     }
 }

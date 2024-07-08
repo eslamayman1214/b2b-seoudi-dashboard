@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\UploadProductRequest;
 use App\Services\LogService;
 use App\Services\ProductService;
-use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
@@ -78,23 +77,24 @@ class ProductController extends Controller
         }
     }
 
-    public function apiIndex(ProductFilterRequest $request)
-    {
-        $products = $this->productService->getProducts($request);
-        return response()->json($products);
-    }
+    /*
+public function apiIndex(ProductFilterRequest $request)
+{
+$products = $this->productService->getProducts($request);
+return response()->json($products);
+}
 
-    public function apiUpdate(UpdateProductRequest $request, $id)
-    {
-        try {
-            if (Auth::user()->role === 'super admin' || Auth::user()->role === 'admin') {
-                $product = $this->productService->updateProduct($request, $id);
-                return response()->json(['message' => 'Product updated successfully.']);
-            } else {
-                return response()->json(['message' => 'User not Authorized!']);
-            }
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Product not found.'], 404);
-        }
-    }
+public function apiUpdate(UpdateProductRequest $request, $id)
+{
+try {
+if (Auth::user()->role === 'super admin' || Auth::user()->role === 'admin') {
+$product = $this->productService->updateProduct($request, $id);
+return response()->json(['message' => 'Product updated successfully.']);
+} else {
+return response()->json(['message' => 'User not Authorized!']);
+}
+} catch (\Exception $e) {
+return response()->json(['message' => 'Product not found.'], 404);
+}
+}*/
 }
