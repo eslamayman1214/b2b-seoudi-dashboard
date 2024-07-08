@@ -23,7 +23,7 @@ class LoginRequest extends FormRequest
     public function messages()
     {
         return [
-            'email.email' => 'The email you entered is not valid.',
+            'email.email' => 'The email must be in our domain (@seoudisupermarket.com)',
             'email.required' => 'The email field is required.',
             'password.required' => 'The password field is required.',
             'password.min' => 'The password must be at least 8 characters.',

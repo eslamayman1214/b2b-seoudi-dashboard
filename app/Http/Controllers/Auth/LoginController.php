@@ -32,22 +32,4 @@ class LoginController extends Controller
         $this->logService->logAction('Logout', "User logged out: {$user->email}");
         return $this->loginService->logoutUser();
     }
-
-    public function apiStore(LoginRequest $request)
-    {
-        return $this->loginService->apiLoginUser($request);
-    }
-
-    /* public function apiDestroy(Request $request)
-{
-$user = $request->user();
-if ($user && $user->currentAccessToken()) {
-$user->currentAccessToken()->delete();
-}
-
-LogHelper::logAction('Logout', "User logged out: {$user->email}");
-
-return response()->json(['message' => 'Logged out successfully.'], 200);
-}*/
-
 }
