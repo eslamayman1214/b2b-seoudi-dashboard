@@ -19,8 +19,8 @@ class LoginService
         $attributes = $request->validated();
         if (!Auth::attempt($attributes, $request->filled('remember'))) {
             throw ValidationException::withMessages([
-                'email' => 'This may be wrong',
-                'password' => 'This may be wrong',
+                'email' => 'The email or password you entered is incorrect.',
+                'password' => 'The email or password you entered is incorrect.',
             ]);
         }
         $request->session()->regenerate();
@@ -37,20 +37,12 @@ class LoginService
     public function apiLoginUser(LoginRequest $request)
     {
         $validated = $request->validated();
-
         if (Auth::attempt($validated)) {
             $user = Auth::user();
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json(['access_token' => $token, 'token_type' => 'Bearer']);
         }
-
-        // If the email exists but the password is incorrect
-        if (User::where('email', $request->input('email'))->exists()) {
-            return response()->json(['message' => 'The email or password is not correct'], 401);
-        }
-
-        // If the email does not exist or is invalid
-        return response()->json(['message' => 'The email you entered is not valid'], 400);
+        return response()->json(['message' => 'The email or password you entered is incorrect.'], 400);
     }
 }

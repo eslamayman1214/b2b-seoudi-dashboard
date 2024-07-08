@@ -36,6 +36,6 @@ class EmailDomain implements Rule
      */
     public function message()
     {
-        return 'The email you entered is not valid.';
+        return 'The email must be in our domain (@seoudisupermarket.com).';
     }
 }
