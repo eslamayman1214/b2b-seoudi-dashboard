@@ -8,7 +8,7 @@ use App\Services\loginService;
 
 class AuthController extends Controller
 {
-    public function __construct(private LoginService $loginService)
+    public function __construct(private loginService $loginService)
     {
     }
     public function login(LoginRequest $request)

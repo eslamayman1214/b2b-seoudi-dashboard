@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Helpers\LogHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
-use App\Services\LoginService;
+use App\Services\loginService;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    public function __construct(private LoginService $loginService, private LogHelper $logService)
+    public function __construct(private loginService $loginService, private LogHelper $logService)
     {
     }
 

@@ -3,11 +3,10 @@
 namespace App\Services;
 
 use App\Http\Requests\LoginRequest;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
-class LoginService
+class loginService
 {
     public function showLoginPage()
     {
