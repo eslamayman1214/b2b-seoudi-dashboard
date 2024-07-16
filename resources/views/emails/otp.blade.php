@@ -12,7 +12,7 @@
 <body>
     <p>Dear <b>{{ $name }}</b>,</p>
     <p>Use the following code to complete your login:</p>
-    <p><strong>{{ $otp }}</strong></p>
+    <p> <strong>{{ $otp }}</strong></p>
     <p>Note: this code is valid for 2 minutes only.</p>
     <p>Thank you!</p>
     <p>Seoudi development team.</p>
