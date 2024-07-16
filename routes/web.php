@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 // Authentication Routes...
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store']);
+Route::post('/validate-otp', [LoginController::class, 'validateOtp'])->name('validate.otp');
+Route::post('/resend-otp', [LoginController::class, 'resendOtp'])->name('resend.otp');
 
 Route::middleware(['auth'])->group(function () {
 
