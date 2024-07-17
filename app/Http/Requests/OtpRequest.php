@@ -17,4 +17,10 @@ class OtpRequest extends FormRequest
             'otp' => 'required|digits:4',
         ];
     }
+    public function messages()
+    {
+        return [
+            'otp.digits' => 'The OTP must be exactly 4 digits.',
+        ];
+    }
 }

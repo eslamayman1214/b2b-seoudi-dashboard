@@ -45,10 +45,6 @@ class LoginController extends Controller
 
         $otp = $request->input('otp');
 
-        if (!preg_match('/^\d{4}$/', $otp)) {
-            return response()->json(['errors' => ['otp' => 'The OTP must be exactly 4 digits.']], 422);
-        }
-
         if ($this->loginService->validateOtp($user, $otp)) {
             Auth::login($user);
             $request->session()->regenerate();
