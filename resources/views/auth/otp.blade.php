@@ -97,6 +97,8 @@
 
                         this.status = data.status || 'A new OTP has been sent to your email.';
                         this.errors = [];
+                        this.digits = ['', '', '', '']; // Clear input fields
+                        this.otp = ''; // Clear the OTP
                         this.countdown = 60;
                         this.startCountdown();
                     } catch (error) {
