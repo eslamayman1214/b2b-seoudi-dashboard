@@ -1,8 +1,8 @@
 <x-layout>
-    @section('title', 'edit product')
+    @section('title', 'Edit Product')
     @section('content')
         <div class="container mx-auto py-12">
-            <div class="max-w-lg mx-auto bg-white shadow-lg rounded-lg">
+            <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg">
                 <div class="px-6 py-4">
                     <h2 class="text-2xl font-semibold text-gray-800">{{ __('Edit Product') }}</h2>
 
@@ -20,60 +20,126 @@
                         @csrf
                         @method('PUT')
 
-                        <div class="mb-4">
-                            <label for="item_code"
-                                class="block text-sm font-medium text-gray-700">{{ __('Item Code') }}</label>
-                            <input id="item_code" type="text"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('item_code') border-red-500 @enderror"
-                                name="item_code" value="{{ $product->item_code }}" required>
-
-                            @error('item_code')
-                                <span class="text-red-500 text-sm mt-1">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
+                        <!-- Product Basic Data -->
+                        <div class="mb-4 border-b pb-4">
+                            <h3 class="text-xl font-semibold text-gray-800">{{ __('Product Basic Data') }}</h3>
+                            <div class="flex space-x-4">
+                                <div class="flex-1">
+                                    <label for="item_code"
+                                        class="block text-sm font-medium text-gray-700">{{ __('Item Code') }}</label>
+                                    <input id="item_code" type="text"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('item_code') border-red-500 @enderror"
+                                        name="item_code" value="{{ $product->item_code }}" required>
+                                    @error('item_code')
+                                        <span class="text-red-500 text-sm mt-1">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                                <div class="flex-1">
+                                    <label for="sku"
+                                        class="block text-sm font-medium text-gray-700">{{ __('SKU') }}</label>
+                                    <input id="sku" type="text"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('sku') border-red-500 @enderror"
+                                        name="sku" value="{{ $product->sku }}" required>
+                                    @error('sku')
+                                        <span class="text-red-500 text-sm mt-1">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                                <div class="flex-1">
+                                    <label for="price"
+                                        class="block text-sm font-medium text-gray-700">{{ __('Price') }}</label>
+                                    <input id="price" type="text"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('price') border-red-500 @enderror"
+                                        name="price" value="{{ $product->price }}" required>
+                                    @error('price')
+                                        <span class="text-red-500 text-sm mt-1">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                                <div class="flex-1">
+                                    <label for="stock"
+                                        class="block text-sm font-medium text-gray-700">{{ __('Stock') }}</label>
+                                    <input id="stock" type="text"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('stock') border-red-500 @enderror"
+                                        name="stock" value="{{ $product->stock }}" required>
+                                    @error('stock')
+                                        <span class="text-red-500 text-sm mt-1">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- Tiers -->
                         <div class="mb-4">
-                            <label for="sku"
-                                class="block text-sm font-medium text-gray-700">{{ __('SKU') }}</label>
-                            <input id="sku" type="text"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('sku') border-red-500 @enderror"
-                                name="sku" value="{{ $product->sku }}" required>
-
-                            @error('sku')
-                                <span class="text-red-500 text-sm mt-1">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="price"
-                                class="block text-sm font-medium text-gray-700">{{ __('Price') }}</label>
-                            <input id="price" type="text"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('price') border-red-500 @enderror"
-                                name="price" value="{{ $product->price }}" required>
-
-                            @error('price')
-                                <span class="text-red-500 text-sm mt-1">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="stock"
-                                class="block text-sm font-medium text-gray-700">{{ __('Stock') }}</label>
-                            <input id="stock" type="text"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('stock') border-red-500 @enderror"
-                                name="stock" value="{{ $product->stock }}" required>
-
-                            @error('stock')
-                                <span class="text-red-500 text-sm mt-1">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
+                            <h3 class="text-xl font-semibold text-gray-800">{{ __('Tiers') }}</h3>
+                            <div id="tiers-container" class="space-y-4">
+                                @php
+                                    $tiers = $tiers ?? [];
+                                @endphp
+                                @foreach ($tiers as $tier)
+                                    <div class="tier flex space-x-4 items-end" data-tier-id="{{ $tier->id }}">
+                                        <input type="hidden" name="tiers[{{ $loop->index }}][id]"
+                                            value="{{ $tier->id }}">
+                                        <div class="flex-1">
+                                            <label
+                                                class="block text-sm font-medium text-gray-700">{{ __('Tier Name') }}</label>
+                                            <input type="text" name="tiers[{{ $loop->index }}][tier_name]"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                                value="{{ $tier->tier_name }}" readonly>
+                                        </div>
+                                        <div class="flex-1">
+                                            <label
+                                                class="block text-sm font-medium text-gray-700">{{ __('Min Quantity') }}</label>
+                                            <input type="number" name="tiers[{{ $loop->index }}][min_quantity]"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                                value="{{ $tier->min_quantity }}" required readonly>
+                                        </div>
+                                        <div class="flex-1">
+                                            <label
+                                                class="block text-sm font-medium text-gray-700">{{ __('Max Quantity') }}</label>
+                                            <input type="number" name="tiers[{{ $loop->index }}][max_quantity]"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                                value="{{ $tier->max_quantity }}" required>
+                                        </div>
+                                        <div class="flex-1">
+                                            <label
+                                                class="block text-sm font-medium text-gray-700">{{ __('Value') }}</label>
+                                            <div class="flex">
+                                                <input type="text" name="tiers[{{ $loop->index }}][value]"
+                                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                                    value="{{ $tier->value }}" required>
+                                                <select name="tiers[{{ $loop->index }}][type]"
+                                                    class="mt-1 ml-2 block rounded-md border-gray-300 shadow-sm">
+                                                    <option value="price" {{ $tier->type == 'price' ? 'selected' : '' }}>
+                                                        Price
+                                                    </option>
+                                                    <option value="percentage"
+                                                        {{ $tier->type == 'percentage' ? 'selected' : '' }}>Percentage
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="flex-none">
+                                            <button type="button"
+                                                class="text-red-500 delete-tier {{ $loop->last ? '' : 'invisible' }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <button type="button" id="add-tier"
+                                class="mt-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">{{ __('Add Tier') }}</button>
                         </div>
 
                         <div class="flex justify-end">
@@ -86,6 +152,95 @@
                 </div>
             </div>
         </div>
-    @endsection
 
+        <script>
+            document.getElementById('add-tier').addEventListener('click', function() {
+                const container = document.getElementById('tiers-container');
+                const tiers = container.querySelectorAll('.tier');
+                const index = tiers.length;
+
+                if (index > 0) {
+                    const lastTier = tiers[index - 1];
+                    const minQuantity = parseInt(lastTier.querySelector('input[name*="[min_quantity]"]').value);
+                    const maxQuantity = parseInt(lastTier.querySelector('input[name*="[max_quantity]"]').value);
+
+                    if (isNaN(minQuantity) || isNaN(maxQuantity) || maxQuantity <= minQuantity) {
+                        alert(
+                            `Invalid quantity range in ${lastTier.querySelector('input[name*="[tier_name]"]').value}. Please check the quantities.`
+                        );
+                        return;
+                    }
+                }
+
+                let previousMaxQuantity = 1;
+                if (index > 0) {
+                    previousMaxQuantity = parseInt(tiers[index - 1].querySelector('input[name*="[max_quantity]"]')
+                        .value) + 1 || 0;
+                }
+
+                const tierName = `tier${index + 1}`;
+
+                const tierHtml = `
+                    <div class="tier flex space-x-4 items-end">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Tier Name') }}</label>
+                            <input type="text" name="tiers[${index}][tier_name]"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" value="${tierName}" readonly>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Min Quantity') }}</label>
+                            <input type="number" name="tiers[${index}][min_quantity]"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                value="${previousMaxQuantity}" readonly required>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Max Quantity') }}</label>
+                            <input type="number" name="tiers[${index}][max_quantity]"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Value') }}</label>
+                            <div class="flex">
+                                <input type="text" name="tiers[${index}][value]"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                                <select name="tiers[${index}][type]"
+                                    class="mt-1 ml-2 block rounded-md border-gray-300 shadow-sm">
+                                    <option value="price">Price</option>
+                                    <option value="percentage">Percentage</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex-none">
+                            <button type="button" class="text-red-500 delete-tier">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>`;
+
+                container.insertAdjacentHTML('beforeend', tierHtml);
+
+                const deleteButtons = container.querySelectorAll('.delete-tier');
+                deleteButtons.forEach((button, i) => {
+                    button.classList.toggle('invisible', i !== deleteButtons.length - 1);
+                });
+            });
+
+            document.getElementById('tiers-container').addEventListener('click', function(e) {
+                if (e.target.closest('.delete-tier')) {
+                    const tier = e.target.closest('.tier');
+                    tier.remove();
+
+                    const container = document.getElementById('tiers-container');
+                    const deleteButtons = container.querySelectorAll('.delete-tier');
+                    deleteButtons.forEach((button, i) => {
+                        button.classList.toggle('invisible', i !== deleteButtons.length - 1);
+                    });
+                }
+            });
+        </script>
+    @endsection
 </x-layout>

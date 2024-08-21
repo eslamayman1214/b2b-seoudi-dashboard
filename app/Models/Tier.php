@@ -5,16 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class Tier extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'item_code', 'sku', 'price', 'stock',
+        'product_id', 'tier_name', 'min_quantity', 'max_quantity', 'value', 'type',
     ];
 
-    public function tiers()
+    public function product()
     {
-        return $this->hasMany(Tier::class);
+        return $this->belongsTo(Product::class);
     }
 }

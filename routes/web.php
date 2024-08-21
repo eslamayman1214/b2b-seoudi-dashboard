@@ -5,6 +5,7 @@ use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\TierController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('settings.index');
         Route::post('toggleLogging', [SettingController::class, 'toggleLogging'])->name('settings.toggleLogging');
     });
-
+    Route::delete('/tiers/{id}', [TierController::class, 'destroy'])->name('tiers.destroy');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });
