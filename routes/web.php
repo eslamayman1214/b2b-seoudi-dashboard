@@ -40,8 +40,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('settings')->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('saveSettings', [SettingController::class, 'saveSettings'])->name('settings.saveSettings');
         Route::post('toggleLogging', [SettingController::class, 'toggleLogging'])->name('settings.toggleLogging');
     });
+
     Route::delete('/tiers/{id}', [TierController::class, 'destroy'])->name('tiers.destroy');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });

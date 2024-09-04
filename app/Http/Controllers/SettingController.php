@@ -21,6 +21,12 @@ class SettingController extends Controller
         return view('settings.index', $settings);
     }
 
+    public function saveSettings(Request $request)
+    {
+        $this->settingService->saveSettings($request);
+        return redirect()->route('settings.index')->with('success', 'Settings updated successfully.');
+    }
+
     public function toggleLogging(Request $request)
     {
         $newValue = $this->settingService->toggleLogging($request);

@@ -8,7 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class Configuration extends Model
 {
     use HasFactory;
-      protected $fillable = [
-        'key','value',
-      ];
+    protected $fillable = ['key', 'value', 'customer_endpoint', 'customer_token', 'base_url', 'products_endpoint', 'products_token'];
 }
