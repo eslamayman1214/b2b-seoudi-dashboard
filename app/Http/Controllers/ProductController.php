@@ -132,9 +132,12 @@ class ProductController extends Controller
             // Fetch the configuration values from the Configuration model
             $customerEndpoint = Configuration::getValueByKey('customer_endpoint');
             $customerToken = Configuration::getValueByKey('customer_token');
+            $baseUrl = Configuration::getValueByKey('base_url');
+
+            $fullUrl = $baseUrl . $customerEndpoint;
 
             $client = new \GuzzleHttp\Client();
-            $response = $client->get($customerEndpoint, [
+            $response = $client->get($fullUrl, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $customerToken,
                     'Accept' => 'application/json',

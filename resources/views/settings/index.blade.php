@@ -57,7 +57,8 @@
 
                     <div class="mt-4">
                         <label for="customer-token" class="block text-gray-700">Customer Token</label>
-                        <input type="text" name="customer_token" id="customer-token" value="{{ $customerToken }}"
+                        <input type="text" name="customer_token" id="customer-token"
+                            value="{{ $customerToken ? substr($customerToken, 0, 4) . str_repeat('*', strlen($customerToken) - 4) : '' }}"
                             class="form-input mt-1 block w-full">
                     </div>
 
@@ -69,7 +70,8 @@
 
                     <div class="mt-4">
                         <label for="products-token" class="block text-gray-700">Products Token</label>
-                        <input type="text" name="products_token" id="products-token" value="{{ $productsToken }}"
+                        <input type="text" name="products_token" id="products-token"
+                            value="{{ $productsToken ? substr($productsToken, 0, 4) . str_repeat('*', strlen($productsToken) - 4) : '' }}"
                             class="form-input mt-1 block w-full">
                     </div>
 
@@ -82,7 +84,6 @@
                 </fieldset>
             </form>
         </div>
-
         <!-- JavaScript to handle save button state for logging and API -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -168,6 +169,5 @@
                 updateButtonStateApi(); // Initialize the button state
             });
         </script>
-
     @endsection
 </x-layout>
