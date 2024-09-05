@@ -125,6 +125,20 @@
                                                 </select>
                                             </div>
                                         </div>
+                                        <!-- Customer Group Dropdown -->
+                                        <div class="flex-1">
+                                            <label
+                                                class="block text-sm font-medium text-gray-700">{{ __('Customer Group') }}</label>
+                                            <select name="tiers[{{ $loop->index }}][customer_group]"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                                @foreach ($customerGroups as $group)
+                                                    <option value="{{ $group }}"
+                                                        {{ $tier->customer_group == $group ? 'selected' : '' }}>
+                                                        {{ $group }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
                                         <div class="flex-none">
                                             <button type="button"
                                                 class="text-red-500 delete-tier {{ $loop->last ? '' : 'invisible' }}">
@@ -179,67 +193,65 @@
                 }
 
                 const tierName = `tier${index + 1}`;
-
-                const tierHtml = `
-                    <div class="tier flex space-x-4 items-end">
+                const newTier = `
+                    <div class="tier flex space-x-4 items-end" data-tier-id="">
                         <div class="flex-1">
                             <label class="block text-sm font-medium text-gray-700">{{ __('Tier Name') }}</label>
-                            <input type="text" name="tiers[${index}][tier_name]"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" value="${tierName}" readonly>
+                            <input type="text" name="tiers[${index}][tier_name]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                value="${tierName}" readonly>
                         </div>
                         <div class="flex-1">
                             <label class="block text-sm font-medium text-gray-700">{{ __('Min Quantity') }}</label>
-                            <input type="number" name="tiers[${index}][min_quantity]"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                                value="${previousMaxQuantity}" readonly required>
+                            <input type="number" name="tiers[${index}][min_quantity]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                value="${previousMaxQuantity}" required readonly>
                         </div>
                         <div class="flex-1">
                             <label class="block text-sm font-medium text-gray-700">{{ __('Max Quantity') }}</label>
-                            <input type="number" name="tiers[${index}][max_quantity]"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                            <input type="number" name="tiers[${index}][max_quantity]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                required>
                         </div>
                         <div class="flex-1">
                             <label class="block text-sm font-medium text-gray-700">{{ __('Value') }}</label>
                             <div class="flex">
-                                <input type="text" name="tiers[${index}][value]"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
-                                <select name="tiers[${index}][type]"
-                                    class="mt-1 ml-2 block rounded-md border-gray-300 shadow-sm">
+                                <input type="text" name="tiers[${index}][value]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                                    required>
+                                <select name="tiers[${index}][type]" class="mt-1 ml-2 block rounded-md border-gray-300 shadow-sm">
                                     <option value="price">Price</option>
                                     <option value="percentage">Percentage</option>
                                 </select>
                             </div>
                         </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ __('Customer Group') }}</label>
+                            <select name="tiers[${index}][customer_group]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                @foreach ($customerGroups as $group)
+                                    <option value="{{ $group }}">{{ $group }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="flex-none">
                             <button type="button" class="text-red-500 delete-tier">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M6 18L18 6M6 6l12 12" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
-                    </div>`;
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', newTier);
 
-                container.insertAdjacentHTML('beforeend', tierHtml);
-
-                const deleteButtons = container.querySelectorAll('.delete-tier');
-                deleteButtons.forEach((button, i) => {
-                    button.classList.toggle('invisible', i !== deleteButtons.length - 1);
+                // Add event listener for new delete button
+                container.querySelectorAll('.delete-tier').forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        this.closest('.tier').remove();
+                    });
                 });
             });
 
-            document.getElementById('tiers-container').addEventListener('click', function(e) {
-                if (e.target.closest('.delete-tier')) {
-                    const tier = e.target.closest('.tier');
-                    tier.remove();
-
-                    const container = document.getElementById('tiers-container');
-                    const deleteButtons = container.querySelectorAll('.delete-tier');
-                    deleteButtons.forEach((button, i) => {
-                        button.classList.toggle('invisible', i !== deleteButtons.length - 1);
-                    });
-                }
+            document.querySelectorAll('.delete-tier').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    this.closest('.tier').remove();
+                });
             });
         </script>
     @endsection

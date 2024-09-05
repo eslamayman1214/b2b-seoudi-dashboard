@@ -10,7 +10,7 @@ class Tier extends Model
     use HasFactory;
 
     protected $fillable = [
-        'product_id', 'tier_name', 'min_quantity', 'max_quantity', 'value', 'type',
+        'product_id', 'tier_name', 'min_quantity', 'max_quantity', 'value', 'type', 'customer_group',
     ];
 
     public function product()

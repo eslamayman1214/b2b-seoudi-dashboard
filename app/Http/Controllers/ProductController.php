@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProductFilterRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\UploadProductRequest;
+use App\Models\Configuration;
 use App\Models\Tier;
 use App\Services\LogService;
 use App\Services\ProductService;
@@ -58,8 +59,12 @@ class ProductController extends Controller
         try {
             $product = $this->productService->findProduct($id);
             $tiers = $product->tiers; // Get tiers for the product
+
+            // Fetch unique customer groups from API
+            $customerGroups = $this->fetchCustomerGroups();
+
             $this->logService->logAction('Edit Product', "Edit product page viewed for product ID: {$id}");
-            return view('products.edit', compact('product', 'tiers'));
+            return view('products.edit', compact('product', 'tiers', 'customerGroups'));
         } catch (\Exception $e) {
             $this->logService->logAction('Edit Product Failed', $e->getMessage());
             abort(404);
@@ -120,4 +125,42 @@ class ProductController extends Controller
             }
         }
     }
+
+    private function fetchCustomerGroups()
+    {
+        try {
+            // Fetch the configuration values from the Configuration model
+            $customerEndpoint = Configuration::getValueByKey('customer_endpoint');
+            $customerToken = Configuration::getValueByKey('customer_token');
+
+            $client = new \GuzzleHttp\Client();
+            $response = $client->get($customerEndpoint, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $customerToken,
+                    'Accept' => 'application/json',
+                ],
+                'verify' => false, // Disable SSL certificate verification
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode !== 200) {
+                throw new \Exception("API request failed with status code $statusCode");
+            }
+
+            $body = json_decode($response->getBody(), true);
+
+            if (!isset($body['items']) || !is_array($body['items'])) {
+                throw new \Exception("Unexpected response structure from API");
+            }
+
+            $customerGroups = array_unique(array_column($body['items'], 'code'));
+
+            return $customerGroups;
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch customer groups: ' . $e->getMessage());
+            return [];
+        }
+    }
+
 }
