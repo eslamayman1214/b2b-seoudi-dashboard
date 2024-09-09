@@ -15,6 +15,7 @@ class CreateTiersTable extends Migration
             $table->integer('max_quantity')->nullable();
             $table->decimal('value', 8, 2)->nullable();
             $table->enum('type', ['price', 'percentage'])->default('price');
+            $table->enum('price_type', ['range', 'fixed'])->default('range');
             $table->string('customer_group');
             $table->timestamps();
         });

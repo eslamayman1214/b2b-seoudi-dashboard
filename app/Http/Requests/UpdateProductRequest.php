@@ -29,9 +29,10 @@ class UpdateProductRequest extends FormRequest
             'price' => 'required|numeric',
             'stock' => 'required|numeric',
             'tiers.*.tier_name' => 'required|string|max:255',
-            'tiers.*.min_quantity' => 'required|integer|min:0',
-            'tiers.*.max_quantity' => 'required|integer|gte:tiers.*.min_quantity',
             'tiers.*.price' => 'nullable|numeric',
+            'tiers.*.value' => 'required|numeric',
+            'tiers.*.price_type' => 'required|in:range,fixed',
+            'tiers.*.customer_group' => 'required|string',
         ];
     }
 

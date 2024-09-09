@@ -66,6 +66,7 @@ class ProductService
 
     public function updateProduct($request, $id)
     {
+
         $product = $this->findProduct($id);
         $product->update($request->validated());
         return $product;

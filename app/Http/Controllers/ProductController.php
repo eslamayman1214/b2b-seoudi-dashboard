@@ -120,8 +120,16 @@ class ProductController extends Controller
     private function validateTiers(array $tiersData)
     {
         foreach ($tiersData as $tierData) {
+            // Skip validation for 'fixed' price type
+            if ($tierData['price_type'] === 'fixed') {
+                $tierData['min_quantity'] = null;
+                $tierData['max_quantity'] = null;
+                continue;
+            }
+
+            // Validate for 'range' price type
             if (!isset($tierData['min_quantity']) || !isset($tierData['max_quantity']) || $tierData['max_quantity'] <= $tierData['min_quantity']) {
-                throw new \Exception('Invalid tier quantities.');
+                throw new \Exception('Invalid tier quantities. Max quantity must be greater than Min quantity for range tiers.');
             }
         }
     }
