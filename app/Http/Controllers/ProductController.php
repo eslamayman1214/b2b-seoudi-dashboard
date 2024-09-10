@@ -6,6 +6,7 @@ use App\Http\Requests\ProductFilterRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\UploadProductRequest;
 use App\Models\Configuration;
+use App\Models\CustomerGroup;
 use App\Models\Tier;
 use App\Services\LogService;
 use App\Services\ProductService;
@@ -60,8 +61,16 @@ class ProductController extends Controller
             $product = $this->productService->findProduct($id);
             $tiers = $product->tiers; // Get tiers for the product
 
-            // Fetch unique customer groups from API
-            $customerGroups = $this->fetchCustomerGroups();
+            // Check if customer groups are already stored in the database
+            $existingCustomerGroups = CustomerGroup::count();
+
+            if ($existingCustomerGroups === 0) {
+                // If no customer groups are stored, fetch from API and store in the database
+                $customerGroups = $this->fetchCustomerGroups();
+
+            }
+            // Fetch customer groups from the database
+            $customerGroups = CustomerGroup::pluck('code');
 
             $this->logService->logAction('Edit Product', "Edit product page viewed for product ID: {$id}");
             return view('products.edit', compact('product', 'tiers', 'customerGroups'));
@@ -109,7 +118,7 @@ class ProductController extends Controller
 
             // Log and redirect
             $this->logService->logAction('Update Product', "Product updated with ID: {$id}");
-            return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+            return back()->with('success', 'Product updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             $this->logService->logAction('Update Product Failed', $e->getMessage());
@@ -119,9 +128,17 @@ class ProductController extends Controller
 
     private function validateTiers(array $tiersData)
     {
-        foreach ($tiersData as $tierData) {
-            // Skip validation for 'fixed' price type
+        $hasFixedTier = false;
+
+        foreach ($tiersData as $index => $tierData) {
+            // Check if a fixed price tier already exists
             if ($tierData['price_type'] === 'fixed') {
+                if ($hasFixedTier) {
+                    throw new \Exception('Only one fixed price tier is allowed.');
+                }
+                $hasFixedTier = true;
+
+                // Nullify the quantities for fixed price type
                 $tierData['min_quantity'] = null;
                 $tierData['max_quantity'] = null;
                 continue;
@@ -129,7 +146,7 @@ class ProductController extends Controller
 
             // Validate for 'range' price type
             if (!isset($tierData['min_quantity']) || !isset($tierData['max_quantity']) || $tierData['max_quantity'] <= $tierData['min_quantity']) {
-                throw new \Exception('Invalid tier quantities. Max quantity must be greater than Min quantity for range tiers.');
+                throw new \Exception("Invalid quantities in tier $index. Max quantity must be greater than Min quantity for range tiers.");
             }
         }
     }
@@ -141,7 +158,6 @@ class ProductController extends Controller
             $customerEndpoint = Configuration::getValueByKey('customer_endpoint');
             $customerToken = Configuration::getValueByKey('customer_token');
             $baseUrl = Configuration::getValueByKey('base_url');
-
             $fullUrl = $baseUrl . $customerEndpoint;
 
             $client = new \GuzzleHttp\Client();
@@ -159,12 +175,16 @@ class ProductController extends Controller
             }
 
             $body = json_decode($response->getBody(), true);
-
             if (!isset($body['items']) || !is_array($body['items'])) {
                 throw new \Exception("Unexpected response structure from API");
             }
 
             $customerGroups = array_unique(array_column($body['items'], 'code'));
+
+            // Store customer groups in the database if they don’t exist
+            foreach ($customerGroups as $groupCode) {
+                CustomerGroup::firstOrCreate(['code' => $groupCode]);
+            }
 
             return $customerGroups;
 

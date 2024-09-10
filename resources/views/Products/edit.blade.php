@@ -16,6 +16,13 @@
                         </div>
                     @endif
 
+                    @if (session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+
                     <form method="POST" action="{{ route('products.update', $product->id) }}" class="mt-6">
                         @csrf
                         @method('PUT')
@@ -188,6 +195,15 @@
                 const container = document.getElementById('tiers-container');
                 const tiers = container.querySelectorAll('.tier');
                 const index = tiers.length;
+                let forceFixedPriceType = false;
+
+                // Check if any previous tier has a fixed price type
+                tiers.forEach(tier => {
+                    const priceType = tier.querySelector('select[name*="[price_type]"]').value;
+                    if (priceType === 'fixed') {
+                        forceFixedPriceType = true;
+                    }
+                });
 
                 if (index > 0) {
                     const lastTier = tiers[index - 1];
@@ -203,6 +219,17 @@
                 }
 
                 let previousMaxQuantity = 1;
+                for (let i = tiers.length - 1; i >= 0; i--) {
+                    const tier = tiers[i];
+                    const priceType = tier.querySelector('select[name*="[price_type]"]').value;
+                    if (priceType === 'range') {
+                        const lastMax = parseInt(tier.querySelector('input[name*="[max_quantity]"]').value);
+                        if (!isNaN(lastMax)) {
+                            previousMaxQuantity = lastMax + 1;
+                        }
+                        break;
+                    }
+                }
 
                 const tierName = `tier${index + 1}`;
                 const newTier = `
@@ -212,17 +239,19 @@
                     <input type="text" name="tiers[${index}][tier_name]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                         value="${tierName}" readonly>
                 </div>
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700">{{ __('Price Type') }}</label>
-                    <select name="tiers[${index}][price_type]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm price-type-select" data-index="${index}">
-                        <option value="range">Range</option>
-                        <option value="fixed">Fixed</option>
-                    </select>
-                </div>
+               <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-700">{{ __('Price Type') }}</label>
+                <select name="tiers[${index}][price_type]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm price-type-select" data-index="${index}" ${forceFixedPriceType ? 'disabled' : ''}>
+                    <option value="range" ${forceFixedPriceType ? 'selected' : ''}>Range</option>
+                    <option value="fixed" ${forceFixedPriceType ? 'hidden' : ''}>Fixed</option>
+                </select>
+                  <!-- Hidden input to set price_type when forced to range -->
+                  ${forceFixedPriceType ? `<input type="hidden" name="tiers[${index}][price_type]" value="range">` : ''}
+                 </div>
                 <div class="flex-1">
                     <label class="block text-sm font-medium text-gray-700">{{ __('Min Quantity') }}</label>
-                    <input type="number" name="tiers[${index}][min_quantity]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                        value="${previousMaxQuantity}" required>
+                      <input type="number" name="tiers[${index}][min_quantity]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                        value="${previousMaxQuantity}" required readonly>
                 </div>
                 <div class="flex-1">
                     <label class="block text-sm font-medium text-gray-700">{{ __('Max Quantity') }}</label>
