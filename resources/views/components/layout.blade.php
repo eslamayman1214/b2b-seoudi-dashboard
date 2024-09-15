@@ -63,6 +63,8 @@
                                 <a href="{{ route('users.index') }}"
                                     class="{{ request()->is('users') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Users
                                     Management</a>
+                                <a href="/tickets"
+                                    class="{{ request()->is('tickets') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Tickets</a>
                                 @if (Auth::user()->role === 'super admin')
                                     <a href="/settings"
                                         class="{{ request()->is('settings') ? 'bg-green-800 text-white' : 'text-gray-300 hover:bg-green-700 hover:text-white' }} block rounded-md px-3 py-2 text-base font-medium">Settings</a>
