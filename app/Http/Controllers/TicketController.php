@@ -14,13 +14,14 @@ class TicketController extends Controller
         // Get the current authenticated user
         $user = Auth::user();
 
-        // Get the filter status from the request
+        // Get the filter status and assigned (assignee) from the request
         $filterStatus = $request->input('status');
+        $filterAssigned = $request->input('assigned'); // New filter
 
         // Get the number of items per page (default is 25)
         $perPage = $request->input('per_page', 25);
 
-        // Fetch tickets with optional status filter
+        // Fetch tickets with optional status and assigned filters
         $ticketsQuery = Ticket::query();
 
         // If user is not a super admin or admin, filter the tickets assigned to them
@@ -33,6 +34,11 @@ class TicketController extends Controller
             $ticketsQuery->where('status', $filterStatus);
         }
 
+        // Apply assigned filter if it's present (new filter)
+        if ($filterAssigned) {
+            $ticketsQuery->where('assigned', $filterAssigned);
+        }
+
         // Apply pagination
         $tickets = $ticketsQuery->paginate($perPage);
 
@@ -40,7 +46,7 @@ class TicketController extends Controller
         $users = User::where('role', 'user')->pluck('name', 'id');
 
         // Pass data to the view
-        return view('tickets.index', compact('tickets', 'users', 'filterStatus', 'perPage'));
+        return view('tickets.index', compact('tickets', 'users', 'filterStatus', 'filterAssigned', 'perPage'));
     }
 
     public function create()
@@ -75,11 +81,12 @@ class TicketController extends Controller
         $ticket->status = $request->input('status');
         $ticket->assigned = $request->input('assigned');
 
-        // Handle file upload if an attachment is provided
+        // Handle file upload if a new attachment is provided
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
-            $path = $file->store('attachments', 'public');
-            $ticket->attachment = $path;
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('attachments', $fileName, 'public');
+            $ticket->attachment = $filePath;
         }
 
         // Save the ticket

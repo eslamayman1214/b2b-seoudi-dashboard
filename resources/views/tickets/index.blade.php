@@ -5,6 +5,7 @@
             <!-- Filter and Search Bar -->
             <form action="{{ route('tickets.index') }}" method="GET" class="mb-4">
                 <div class="flex items-center justify-between space-x-4 bg-gray-100 p-4 rounded-md shadow-sm">
+                    <!-- Status Filter -->
                     <div class="flex-1">
                         <select name="status"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -16,6 +17,21 @@
                             </option>
                         </select>
                     </div>
+
+                    @if (Auth::user()->role != 'user')
+                        <!-- Assignee Filter -->
+                        <div class="flex-1">
+                            <select name="assigned"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Filter by Assignee</option>
+                                @foreach ($users as $id => $name)
+                                    <option value="{{ $id }}" {{ request('assigned') == $id ? 'selected' : '' }}>
+                                        {{ $name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
                     <div class="flex items-center space-x-2">
                         <button type="submit"
                             class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md shadow-md focus:ring-2 focus:ring-blue-500">
@@ -75,8 +91,7 @@
                                             <option value="">Not Assigned</option>
                                             @foreach ($users as $id => $name)
                                                 <option value="{{ $id }}"
-                                                    {{ $ticket->assigned == $id ? 'selected' : '' }}>
-                                                    {{ $name }}
+                                                    {{ $ticket->assigned == $id ? 'selected' : '' }}>{{ $name }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -125,8 +140,10 @@
                             @endforeach
                         </form>
                     </div>
+
+                    <!-- Pagination Links -->
                     <div>
-                        {{ $tickets->appends(['per_page' => $perPage])->links() }}
+                        {{ $tickets->links() }}
                     </div>
                 </div>
             @endif
@@ -136,6 +153,7 @@
         <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
         <script>
+            // Save Ticket Function with SweetAlert2
             function saveTicket(ticketId) {
                 var status = document.getElementById('status_' + ticketId).value;
                 var assigned = document.getElementById('assigned_' + ticketId).value;
@@ -154,39 +172,87 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Ticket updated successfully');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Ticket Updated',
+                                text: 'The ticket was updated successfully!',
+                                timer: 1500, // Auto close after 1.5 seconds
+                                showConfirmButton: false
+                            });
                         } else {
-                            alert('Error updating ticket');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'There was an issue updating the ticket.',
+                                confirmButtonText: 'Try Again'
+                            });
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Network Error',
+                            text: 'Unable to update ticket. Please try again later.',
+                            confirmButtonText: 'OK'
+                        });
                     });
             }
 
+            // Confirm Delete with SweetAlert2
             function confirmDelete(ticketId) {
-                if (confirm('Are you sure you want to delete this ticket?')) {
-                    fetch(`/tickets/${ticketId}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert('Ticket deleted successfully');
-                                location.reload();
-                            } else {
-                                alert('Error deleting ticket');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                        });
-                }
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Proceed with deletion if confirmed
+                        fetch(`/tickets/${ticketId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Content-Type': 'application/json'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Deleted!',
+                                        text: 'The ticket has been deleted.',
+                                        timer: 1500, // Auto close after 1.5 seconds
+                                        showConfirmButton: false
+                                    }).then(() => {
+                                        location.reload(); // Reload the page after deletion
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: 'There was an issue deleting the ticket.',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Network Error',
+                                    text: 'Unable to delete ticket. Please try again later.',
+                                    confirmButtonText: 'OK'
+                                });
+                            });
+                    }
+                });
             }
         </script>
+
     @endsection
 </x-layout>

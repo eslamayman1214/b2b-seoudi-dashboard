@@ -32,22 +32,21 @@
                 <div class="mb-4">
                     <label for="description" class="block text-gray-700">Description</label>
                     <textarea id="description" name="description" class="w-full px-3 py-2 border rounded-md"
-                        placeholder="Enter ticket description" @if (Auth::user()->role == 'user') readonly @endif>{{ old('description', $ticket->description) }}</textarea>
+                        placeholder="Enter ticket description" readonly>{{ old('description', $ticket->description) }}</textarea>
                 </div>
 
                 <!-- Department -->
                 <div class="mb-4">
                     <label for="department" class="block text-gray-700">Department</label>
                     <input type="text" id="department" name="department" class="w-full px-3 py-2 border rounded-md"
-                        value="{{ old('department', $ticket->department) }}"
-                        @if (Auth::user()->role == 'user') readonly @endif>
+                        value="{{ old('department', $ticket->department) }}" readonly>
                 </div>
 
                 <!-- Email -->
                 <div class="mb-4">
                     <label for="email" class="block text-gray-700">Email</label>
                     <input type="email" id="email" name="email" class="w-full px-3 py-2 border rounded-md"
-                        value="{{ old('email', $ticket->email) }}" @if (Auth::user()->role == 'user') readonly @endif>
+                        value="{{ old('email', $ticket->email) }}" readonly>
                 </div>
 
                 <!-- Status -->
@@ -83,22 +82,32 @@
                         <a href="{{ route('tickets.downloadAttachment', $ticket->id) }}" class="text-blue-600">
                             Download Attachment ({{ basename($ticket->attachment) }})
                         </a>
+                    @else
+                        <p class="text-gray-600">No attachment provided.</p>
                     @endif
-                    <!-- Option to upload a new attachment -->
-                    <input type="file" id="attachment" name="attachment" class="mt-2"
-                        @if (Auth::user()->role == 'user') disabled @endif>
-                </div>
 
-                <!-- Action Buttons -->
-                <div class="flex justify-start gap-2">
-                    <!-- Update Button -->
-                    <button type="button" onclick="updateTicket({{ $ticket->id }})"
-                        class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md">Update Ticket</button>
+                    <!--
+                                     @if (Auth::user()->role != 'user')
+    <input type="file" id="attachment" name="attachment" class="mt-2">
+    @endif
+                                    -->
 
-                    <!-- Back Button -->
-                    <a href="{{ route('tickets.index') }}"
-                        class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md">Back</a>
-                </div>
+                    <!-- Action Buttons -->
+                    <div class="flex justify-start gap-2">
+                        <!-- Update Button -->
+                        <button type="button" onclick="updateTicket({{ $ticket->id }})"
+                            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md">
+                            @if (Auth::user()->role == 'user')
+                                Update Status
+                            @else
+                                Update Ticket
+                            @endif
+                        </button>
+
+                        <!-- Back Button -->
+                        <a href="{{ route('tickets.index') }}"
+                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md">Back</a>
+                    </div>
             </form>
         </div>
 
@@ -122,17 +131,35 @@
                     })
                     .then(data => {
                         if (data.success) {
-                            alert('Ticket updated successfully');
-                            location.reload(); // Reload to see updated data
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Ticket updated successfully',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload(); // Reload the page to see updated data
+                            });
                         } else {
-                            alert('Error updating ticket: ' + data.message);
+                            Swal.fire({
+                                title: 'Error!',
+                                text: 'Error updating ticket: ' + data.message,
+                                icon: 'error',
+                                confirmButtonText: 'Try Again'
+                            });
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Network Error!',
+                            text: 'There was an issue with the network. Please try again later.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
                     });
             }
         </script>
+
 
     @endsection
 </x-layout>

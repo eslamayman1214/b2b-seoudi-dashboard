@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\TicketController;
 use Illuminate\Support\Facades\Route;
 
 // API Authentication Routes...
@@ -13,4 +14,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [ProductController::class, 'index']);
         Route::put('{id}', [ProductController::class, 'update'])->middleware('auth:api');
     });
+    Route::post('/tickets', [TicketController::class, 'store']);
+
 });
