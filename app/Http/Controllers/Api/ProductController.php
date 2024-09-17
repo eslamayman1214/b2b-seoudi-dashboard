@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductFilterRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Services\productService;
+use App\Services\ProductService;
 use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
