@@ -99,40 +99,72 @@
                     })
                     .then(response => {
                         if (response.ok) {
-                            alert('User role updated successfully.');
-                            location.reload();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: 'User role updated successfully.',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
                         } else {
                             throw new Error('Failed to update user role.');
                         }
                     })
                     .catch(error => {
                         console.error(error);
-                        alert('An error occurred while updating user role.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while updating the user role.',
+                        });
                     });
             }
 
             function confirmDelete(userId) {
-                if (confirm('Are you sure you want to delete this user?')) {
-                    fetch('/users/' + userId, {
-                            method: 'DELETE',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            }
-                        })
-                        .then(response => {
-                            if (response.ok) {
-                                alert('User deleted successfully.');
-                                document.getElementById('user-row-' + userId).remove();
-                            } else {
-                                throw new Error('Failed to delete user.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error(error);
-                            alert('An error occurred while deleting user.');
-                        });
-                }
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'This action cannot be undone!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch('/users/' + userId, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                }
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Deleted!',
+                                        text: 'User deleted successfully.',
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    }).then(() => {
+                                        document.getElementById('user-row-' + userId).remove();
+                                    });
+                                } else {
+                                    throw new Error('Failed to delete user.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error(error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'An error occurred while deleting the user.',
+                                });
+                            });
+                    }
+                });
             }
         </script>
     @endsection
