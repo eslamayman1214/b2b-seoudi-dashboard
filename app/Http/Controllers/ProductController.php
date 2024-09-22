@@ -233,14 +233,16 @@ class ProductController extends Controller
                 throw new \Exception("Unexpected response structure from API");
             }
 
-            $customerGroups = array_unique(array_column($body['items'], 'code'));
-
-            // Store customer groups in the database if they don’t exist
-            foreach ($customerGroups as $groupCode) {
-                CustomerGroup::firstOrCreate(['code' => $groupCode]);
+            // Iterate over customer groups from the API response
+            foreach ($body['items'] as $group) {
+                // Store customer groups in the database if they don’t exist
+                CustomerGroup::firstOrCreate(
+                    ['code' => $group['code']], // Store 'code' as 'code'
+                    ['group_id' => $group['id']]// Store 'id' as 'group_id'
+                );
             }
 
-            return $customerGroups;
+            return $body['items'];
 
         } catch (\Exception $e) {
             Log::error('Failed to fetch customer groups: ' . $e->getMessage());

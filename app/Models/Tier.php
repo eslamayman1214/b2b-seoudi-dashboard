@@ -17,4 +17,10 @@ class Tier extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    // Define the relationship with CustomerGroup based on the customer_group code
+    public function customerGroup()
+    {
+        return $this->belongsTo(CustomerGroup::class, 'customer_group', 'code');
+    }
 }

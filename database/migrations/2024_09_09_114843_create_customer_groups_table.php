@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('customer_groups', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique();
+            $table->string('group_id')->unique();
             $table->timestamps();
         });
     }
