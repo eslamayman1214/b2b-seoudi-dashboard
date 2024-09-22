@@ -28,11 +28,6 @@ class UpdateProductRequest extends FormRequest
             'sku' => 'required|string|max:255|unique:products,sku,' . $id,
             'price' => 'required|numeric',
             'stock' => 'required|numeric',
-            'tiers.*.tier_name' => 'required|string|max:255',
-            'tiers.*.price' => 'nullable|numeric',
-            'tiers.*.value' => 'required|numeric',
-            'tiers.*.price_type' => 'required|in:range,fixed',
-            'tiers.*.customer_group' => 'required|string',
         ];
     }
 

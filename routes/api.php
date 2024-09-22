@@ -13,6 +13,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('products')->group(function () {
         Route::get('/', [ProductController::class, 'index']);
         Route::put('{id}', [ProductController::class, 'update'])->middleware('auth:api');
+        Route::get('products-with-tiers', [ProductController::class, 'getAllProductsWithTiers']);
+
     });
     Route::post('/tickets', [TicketController::class, 'store']);
 

@@ -71,4 +71,8 @@ class ProductService
         $product->update($request->validated());
         return $product;
     }
+    public function getAllProductsWithTiers()
+    {
+        return Product::with('tiers')->get();
+    }
 }

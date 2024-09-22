@@ -11,6 +11,7 @@ use App\Models\Tier;
 use App\Services\LogService;
 use App\Services\ProductService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
@@ -55,6 +56,7 @@ class ProductController extends Controller
             return back()->withErrors(['csv_file' => $e->getMessage()]);
         }
     }
+
     public function edit($id)
     {
         try {
@@ -85,32 +87,58 @@ class ProductController extends Controller
         DB::beginTransaction();
 
         try {
+            Log::info('Received update request for product ID: ' . $id);
+            Log::info('Request data:', $request->all());
+
             // Update the main product details
             $product = $this->productService->updateProduct($request, $id);
 
             // Handle tiers update
             $tiersData = $request->input('tiers', []);
+            Log::info('Tiers data:', $tiersData);
 
             // Validate tiers
-            $this->validateTiers($tiersData);
+            $this->validateTiers($tiersData, $product);
 
             // Get existing tier IDs
-            $existingTierIds = array_filter(array_column($tiersData, 'id'));
+            $existingTierIds = [];
+            foreach ($tiersData as $customerGroup => $tiers) {
+                $existingTierIds = array_merge($existingTierIds, array_filter(array_column($tiers, 'id')));
+            }
 
             // Remove tiers not in the request
             $product->tiers()->whereNotIn('id', $existingTierIds)->delete();
 
             // Update or create tiers
-            foreach ($tiersData as $tierData) {
-                if (isset($tierData['id'])) {
-                    $tier = Tier::find($tierData['id']);
-                    if ($tier) {
-                        $tier->update($tierData);
+            foreach ($tiersData as $customerGroup => &$tiers) {
+                foreach ($tiers as $index => &$tierData) {
+                    Log::info("Processing tier for customer group: $customerGroup, index: $index");
+                    Log::info('Tier data:', $tierData);
+
+                    $tierData['customer_group'] = $customerGroup;
+
+                    if (isset($tierData['id']) && $tierData['id']) {
+                        $tier = Tier::find($tierData['id']);
+                        if ($tier) {
+                            // If price_type is not in the request, use the existing one from the database
+                            if (!isset($tierData['price_type'])) {
+                                $tierData['price_type'] = $tier->price_type;
+                                // Update the $tiersData array as well
+                                $tiers[$index]['price_type'] = $tier->price_type;
+                            }
+                            $tier->update($tierData);
+                            Log::info("Updated existing tier: " . $tier->id);
+                        } else {
+                            throw new \Exception("Tier with ID {$tierData['id']} not found.");
+                        }
                     } else {
-                        throw new \Exception("Tier with ID {$tierData['id']} not found.");
+                        // For new tiers, ensure price_type is set (default to 'range' if not provided)
+                        $tierData['price_type'] = $tierData['price_type'] ?? 'range';
+                        // Update the $tiersData array as well
+                        $tiers[$index]['price_type'] = $tierData['price_type'];
+                        $newTier = $product->tiers()->create($tierData);
+                        Log::info("Created new tier: " . $newTier->id);
                     }
-                } else {
-                    $product->tiers()->create($tierData);
                 }
             }
 
@@ -119,34 +147,60 @@ class ProductController extends Controller
             // Log and redirect
             $this->logService->logAction('Update Product', "Product updated with ID: {$id}");
             return back()->with('success', 'Product updated successfully.');
+
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error updating product: ' . $e->getMessage());
+            Log::error($e->getTraceAsString());
             $this->logService->logAction('Update Product Failed', $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'An error occurred while updating the product.']);
+            return back()->with('fail', 'An error occurred while updating the product: ' . $e->getMessage());
         }
     }
 
-    private function validateTiers(array $tiersData)
+    private function validateTiers(array $tiersData, $product)
     {
-        $hasFixedTier = false;
+        foreach ($tiersData as $customerGroup => $tiers) {
+            $hasFixedTier = false;
 
-        foreach ($tiersData as $index => $tierData) {
-            // Check if a fixed price tier already exists
-            if ($tierData['price_type'] === 'fixed') {
-                if ($hasFixedTier) {
-                    throw new \Exception('Only one fixed price tier is allowed.');
+            foreach ($tiers as $index => $tierData) {
+                Log::info("Validating tier for customer group: $customerGroup, index: $index");
+                Log::info('Tier data:', $tierData);
+
+                // If updating an existing tier, get the price_type from the database if not provided
+                if (isset($tierData['id'])) {
+                    $existingTier = $product->tiers()->find($tierData['id']);
+                    if ($existingTier) {
+                        $tierData['price_type'] = $tierData['price_type'] ?? $existingTier->price_type;
+                    }
+                } else {
+                    // For new tiers, default to 'range' if not provided
+                    $tierData['price_type'] = $tierData['price_type'] ?? 'range';
                 }
-                $hasFixedTier = true;
 
-                // Nullify the quantities for fixed price type
-                $tierData['min_quantity'] = null;
-                $tierData['max_quantity'] = null;
-                continue;
-            }
+                if (!isset($tierData['price_type'])) {
+                    throw new \Exception("Price type is not set for tier {$index} in customer group {$customerGroup}.");
+                }
 
-            // Validate for 'range' price type
-            if (!isset($tierData['min_quantity']) || !isset($tierData['max_quantity']) || $tierData['max_quantity'] <= $tierData['min_quantity']) {
-                throw new \Exception("Invalid quantities in tier $index. Max quantity must be greater than Min quantity for range tiers.");
+                // Check if a fixed price tier already exists
+                if ($tierData['price_type'] === 'fixed') {
+                    if ($hasFixedTier) {
+                        throw new \Exception("Only one fixed price tier is allowed for customer group {$customerGroup}.");
+                    }
+                    $hasFixedTier = true;
+
+                    // Nullify the quantities for fixed price type
+                    $tierData['min_quantity'] = null;
+                    $tierData['max_quantity'] = null;
+                    continue;
+                }
+
+                // Validate for 'range' price type
+                if ($tierData['price_type'] === 'range' && (!isset($tierData['min_quantity']) || !isset($tierData['max_quantity']) || $tierData['max_quantity'] <= $tierData['min_quantity'])) {
+                    throw new \Exception("Invalid quantities in tier {$index} for customer group {$customerGroup}. Max quantity must be greater than Min quantity for range tiers.");
+                }
+                if ($tierData['value'] <= 0) {
+                    throw new \Exception("Invalid value in tier {$index} for customer group {$customerGroup}. Value must be greater than Zero!");
+                }
             }
         }
     }
@@ -189,7 +243,7 @@ class ProductController extends Controller
             return $customerGroups;
 
         } catch (\Exception $e) {
-            \Log::error('Failed to fetch customer groups: ' . $e->getMessage());
+            Log::error('Failed to fetch customer groups: ' . $e->getMessage());
             return [];
         }
     }
