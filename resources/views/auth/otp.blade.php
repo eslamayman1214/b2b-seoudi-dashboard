@@ -27,7 +27,9 @@
                 </div>
                 <div class="flex justify-between items-center mb-4">
                     <button type="submit"
-                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Submit
+                    </button>
                     <button type="button"
                         class="text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                         :class="countdown > 0 ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'" :disabled="countdown > 0"
@@ -44,6 +46,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         new Vue({
             el: '#otp-app',
@@ -60,23 +63,22 @@
             methods: {
                 moveNext(index) {
                     if (this.digits[index].length === 1 && index < this.digits.length - 1) {
-                        this.$refs['digit' + (index + 1)][0].focus(); // Move focus to next field
+                        this.$refs['digit' + (index + 1)][0].focus();
                     }
-                    this.otp = this.digits.join(''); // Update the complete OTP string
+                    this.otp = this.digits.join('');
                 },
                 movePrev(index) {
-                    if (index > 0 && this.digits[index].length ===
-                        0) { // If current field is empty and backspace is pressed
-                        this.$refs['digit' + (index - 1)][0].focus(); // Move focus to previous field
+                    if (index > 0 && this.digits[index].length === 0) {
+                        this.$refs['digit' + (index - 1)][0].focus();
                     }
-                    this.otp = this.digits.join(''); // Update the complete OTP string
+                    this.otp = this.digits.join('');
                 },
                 startCountdown() {
                     if (this.countdown > 0) {
                         setTimeout(() => {
                             this.countdown--;
                             this.startCountdown();
-                        }, 1000); // 1000 milliseconds = 1 second
+                        }, 1000);
                     }
                 },
                 async resendOtp() {
@@ -101,9 +103,19 @@
                         this.otp = ''; // Clear the OTP
                         this.countdown = 60;
                         this.startCountdown();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'OTP Resent',
+                            text: 'A new OTP has been sent to your email.',
+                        });
                     } catch (error) {
                         console.error('Error resending OTP:', error);
                         this.errors.push('Failed to resend OTP. Please try again.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to resend OTP. Please try again.',
+                        });
                     }
                 },
                 async submitOtp() {
@@ -123,7 +135,11 @@
                         if (!response.ok) {
                             const errorData = await response.json();
                             this.errors = errorData.errors || ['Failed to submit OTP. Please try again.'];
-                            alert('Invalid OTP. Please check your email for the correct OTP.');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Invalid OTP',
+                                text: 'Please check your email for the correct OTP.',
+                            });
                             return;
                         }
 
@@ -131,16 +147,29 @@
 
                         if (data.errors) {
                             this.errors = data.errors;
-                            alert('Invalid OTP. Please check your email for the correct OTP.');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Invalid OTP',
+                                text: 'Please check your email for the correct OTP.',
+                            });
                         } else if (data.redirect) {
                             window.location.href = data.redirect;
                         } else {
                             this.status = data.status;
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'OTP Verified',
+                                text: 'Your OTP has been successfully verified!',
+                            });
                         }
                     } catch (error) {
                         console.error('Error submitting OTP:', error);
                         this.errors.push('Failed to submit OTP. Please try again.');
-                        alert('Invalid OTP. Please check your email for the correct OTP.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to submit OTP. Please try again.',
+                        });
                     }
                 }
             }

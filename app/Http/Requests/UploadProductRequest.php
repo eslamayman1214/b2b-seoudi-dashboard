@@ -22,7 +22,7 @@ class UploadProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'csv_file' => 'required|mimes:xlsx,xls,csv,txt',
+            'csv_file' => 'mimes:xlsx,xls,csv,txt|max:2048',
         ];
     }
 }

@@ -249,5 +249,20 @@ class ProductController extends Controller
             return [];
         }
     }
+    public function uploadTiers(UploadProductRequest $request)
+    {
+        try {
+            $file = $request->file('tiers_csv_file');
+            $data = Excel::toArray([], $file)[0] ?? [];
+
+            $this->productService->uploadTiers($data);
+
+            $this->logService->logAction('Upload Tiers CSV Successful', 'CSV file processed successfully.');
+            return back()->with('success', 'CSV file processed successfully.');
+        } catch (\Exception $e) {
+            $this->logService->logAction('Upload Tiers CSV Failed', $e->getMessage());
+            return back()->withErrors(['tiers_csv_file' => $e->getMessage()]);
+        }
+    }
 
 }

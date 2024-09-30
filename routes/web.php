@@ -25,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('upload', [ProductController::class, 'upload'])->name('products.upload');
         Route::get('{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
         Route::put('{id}', [ProductController::class, 'update'])->name('products.update');
+        Route::post('upload-tiers', [ProductController::class, 'uploadTiers'])->name('tiers.upload');
+
     });
 
     Route::get('invite', [InviteController::class, 'create'])->name('invite.create');

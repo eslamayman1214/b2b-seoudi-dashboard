@@ -122,5 +122,8 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    'commands' => [
+        App\Console\Commands\ProcessCronJob::class,
+    ],
 
 ];
