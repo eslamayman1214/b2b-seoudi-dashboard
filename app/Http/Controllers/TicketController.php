@@ -2,156 +2,62 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\LogHelper;
 use App\Http\Requests\TicketRequest;
-use App\Models\Ticket;
-use App\Models\User;
+use App\Services\TicketService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
+    public function __construct(private TicketService $ticketService, private LogHelper $logService)
+    {
+    }
+
     public function index(Request $request)
     {
-        try {
-            $user = Auth::user();
-            $filterStatus = $request->input('status');
-            $filterAssigned = $request->input('assigned');
-            $perPage = $request->input('per_page', 25);
-
-            $ticketsQuery = Ticket::query();
-
-            if ($user->role === 'user') {
-                $ticketsQuery->where('assigned', $user->id);
-            }
-
-            if ($filterStatus) {
-                $ticketsQuery->where('status', $filterStatus);
-            }
-
-            if ($filterAssigned) {
-                $ticketsQuery->where('assigned', $filterAssigned);
-            }
-
-            $tickets = $ticketsQuery->paginate($perPage);
-            $users = User::where('role', 'user')->pluck('name', 'id');
-
-            return view('tickets.index', compact('tickets', 'users', 'filterStatus', 'filterAssigned', 'perPage'));
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to load tickets: ' . $e->getMessage());
-        }
+        $this->logService->logAction('View Ticket List', 'Fetching ticket list');
+        return $this->ticketService->getTickets($request);
     }
 
     public function create()
     {
-        try {
-            $users = User::where('role', 'user')->pluck('name', 'id');
-            $ticketId = 'TICKET-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-            return view('tickets.create', compact('users', 'ticketId'));
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to load ticket creation page: ' . $e->getMessage());
-        }
+        $this->logService->logAction('Create Ticket Page', 'Loading ticket creation page');
+        return $this->ticketService->loadCreatePage();
     }
 
     public function store(TicketRequest $request)
     {
-        try {
-            $ticket = new Ticket();
-            $ticket->description = $request->input('description');
-            $ticket->department = $request->input('department');
-            $ticket->email = $request->input('email');
-            $ticket->status = $request->input('status');
-            $ticket->assigned = $request->input('assigned');
-
-            if ($request->hasFile('attachment')) {
-                $file = $request->file('attachment');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('attachments', $fileName, 'public');
-                $ticket->attachment = $filePath;
-            }
-
-            $ticket->save();
-
-            return redirect()->route('tickets.index')->with('success', 'Ticket created successfully.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to create ticket: ' . $e->getMessage());
-        }
+        $this->logService->logAction('Store Ticket', 'Creating a new ticket');
+        return $this->ticketService->storeTicket($request);
     }
 
     public function update(TicketRequest $request, $id)
     {
-        try {
-            $ticket = Ticket::findOrFail($id);
-
-            $ticket->description = $request->input('description');
-            $ticket->department = $request->input('department');
-            $ticket->email = $request->input('email');
-            $ticket->status = $request->input('status');
-            $ticket->assigned = $request->input('assigned');
-
-            if ($request->hasFile('attachment')) {
-                $file = $request->file('attachment');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('attachments', $fileName, 'public');
-                $ticket->attachment = $filePath;
-            }
-
-            $ticket->save();
-
-            return response()->json(['success' => true, 'message' => 'Ticket updated successfully']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to update ticket: ' . $e->getMessage()], 500);
-        }
+        $this->logService->logAction('Update Ticket', "Updating ticket ID: {$id}");
+        return $this->ticketService->updateTicket($request, $id);
     }
 
     public function update_index(Request $request, $id)
     {
-        try {
-            $ticket = Ticket::findOrFail($id);
-            $ticket->status = $request->input('status');
-            $ticket->assigned = $request->input('assigned');
-            $ticket->save();
-
-            return response()->json(['success' => true, 'message' => 'Ticket updated successfully']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to update ticket: ' . $e->getMessage()], 500);
-        }
+        $this->logService->logAction('Update Ticket Index', "Updating ticket index ID: {$id}");
+        return $this->ticketService->updateTicketIndex($request, $id);
     }
 
     public function downloadAttachment($id)
     {
-        try {
-            $ticket = Ticket::findOrFail($id);
-
-            if ($ticket->attachment) {
-                $filePath = storage_path('app/public/' . $ticket->attachment);
-                return response()->download($filePath, basename($ticket->attachment));
-            }
-
-            return response()->json(['error' => 'No attachment found'], 404);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to download attachment: ' . $e->getMessage()], 500);
-        }
+        $this->logService->logAction('Download Attachment', "Downloading attachment for ticket ID: {$id}");
+        return $this->ticketService->downloadAttachment($id);
     }
 
     public function show($id)
     {
-        try {
-            $ticket = Ticket::findOrFail($id);
-            $users = User::where('role', 'user')->pluck('name', 'id');
-            return view('tickets.show', compact('ticket', 'users'));
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to load ticket details: ' . $e->getMessage());
-        }
+        $this->logService->logAction('Show Ticket', "Fetching details for ticket ID: {$id}");
+        return $this->ticketService->showTicket($id);
     }
 
     public function destroy($id)
     {
-        try {
-            $ticket = Ticket::findOrFail($id);
-            $ticket->delete();
-            return response()->json(['success' => 'Ticket deleted successfully']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to delete ticket: ' . $e->getMessage()], 500);
-        }
+        $this->logService->logAction('Delete Ticket', "Deleting ticket ID: {$id}");
+        return $this->ticketService->deleteTicket($id);
     }
 }
