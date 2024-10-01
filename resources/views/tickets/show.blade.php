@@ -72,6 +72,10 @@
                             </option>
                         @endforeach
                     </select>
+                    @if (Auth::user()->role == 'user')
+                        <!-- Include hidden input to retain the current assigned value -->
+                        <input type="hidden" name="assigned" value="{{ $ticket->assigned }}">
+                    @endif
                 </div>
 
                 <!-- Attachments -->
@@ -87,13 +91,13 @@
                     @endif
 
                     <!--
-                                     @if (Auth::user()->role != 'user')
+                                 @if (Auth::user()->role != 'user')
     <input type="file" id="attachment" name="attachment" class="mt-2">
     @endif
-                                    -->
+                            -->
 
                     <!-- Action Buttons -->
-                    <div class="flex justify-start gap-2">
+                    <div class="flex justify-start gap-2 mt-4">
                         <!-- Update Button -->
                         <button type="button" onclick="updateTicket({{ $ticket->id }})"
                             class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md">
@@ -159,7 +163,6 @@
                     });
             }
         </script>
-
 
     @endsection
 </x-layout>

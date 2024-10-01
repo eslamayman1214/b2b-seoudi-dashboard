@@ -25,7 +25,7 @@ class TicketRequest extends FormRequest
             'department' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'status' => 'required|in:pending,in progress,resolved',
+            'status' => 'in:pending,in progress,resolved',
             'assigned' => 'nullable|exists:users,id',
         ];
     }

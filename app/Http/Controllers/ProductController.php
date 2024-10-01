@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProductFilterRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Requests\UploadProductRequest;
+use App\Http\Requests\UploadTierRequest;
 use App\Models\Configuration;
 use App\Models\CustomerGroup;
 use App\Models\Tier;
@@ -249,7 +250,7 @@ class ProductController extends Controller
             return [];
         }
     }
-    public function uploadTiers(UploadProductRequest $request)
+    public function uploadTiers(UploadTierRequest $request)
     {
         try {
             $file = $request->file('tiers_csv_file');
