@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ProductController as ApiProductController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasswordController;
@@ -45,6 +46,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('settings.index');
         Route::post('saveSettings', [SettingController::class, 'saveSettings'])->name('settings.saveSettings');
         Route::post('toggleLogging', [SettingController::class, 'toggleLogging'])->name('settings.toggleLogging');
+        Route::post('fetch-customer-groups', [ProductController::class, 'fetchCustomerGroups'])->name('settings.fetchCustomerGroups');
+        Route::post('fetch-products', [ApiProductController::class, 'sendProductDataToApi'])->name('settings.fetchProducts');
+
     });
 
     Route::prefix('tickets')->group(function () {

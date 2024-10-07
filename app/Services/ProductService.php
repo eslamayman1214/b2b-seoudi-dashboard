@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CustomerGroup;
 use App\Models\Product;
 use App\Models\ProductVersion;
 use App\Models\Tier;
@@ -196,7 +197,7 @@ class ProductService
             }
 
             // Ensure SKU and tier-related fields are set
-            if (isset($row[0]) && isset($row[1]) && isset($row[2]) && isset($row[3]) && isset($row[4]) && isset($row[5]) && isset($row[6]) && isset($row[7])) {
+            if (isset($row[0]) && isset($row[1]) && isset($row[4]) && isset($row[5]) && isset($row[6]) && isset($row[7])) {
                 // Find product by SKU
                 $existingProduct = Product::where('sku', $row[0])->first();
 
@@ -269,23 +270,62 @@ class ProductService
 
     public function validateTier(array $tierData)
     {
+        // Ensure 'price_type' is present and handle it case-insensitively
         if (!isset($tierData['price_type'])) {
             throw new \Exception('Price type is required.');
         }
-        if (!isset($tierData['customer_group'])) {
-            $tierData['customer_group'] = 'Retailer';
+
+        $tierData['price_type'] = strtolower($tierData['price_type']); // Convert to lowercase for storage
+
+        // Validate price_type
+        if (!in_array($tierData['price_type'], ['fixed', 'range'])) {
+            throw new \Exception('Invalid price type. Must be "fixed" or "range".');
         }
 
+        // Ensure 'type' is present and handle it case-insensitively
+        if (!isset($tierData['type'])) {
+            throw new \Exception('Type is required.');
+        }
+
+        $tierData['type'] = strtolower($tierData['type']); // Convert to lowercase for storage
+
+        // Validate type
+        if (!in_array($tierData['type'], ['price', 'percentage'])) {
+            throw new \Exception('Invalid type. Must be "price" or "percentage".');
+        }
+
+        // Get customer groups (assuming $customerGroups is an array)
+        $customerGroups = array_map('strtolower', CustomerGroup::pluck('code')->toArray()); // Convert all to lowercase
+
+        // Ensure 'customer_group' is present
+        if (!isset($tierData['customer_group'])) {
+            throw new \Exception('Customer group is required.');
+        }
+
+        // Convert customer_group to lowercase for storage
+        $tierData['customer_group'] = strtolower($tierData['customer_group']);
+
+        // Check if customer_group exists in the allowed groups
+        if (!in_array($tierData['customer_group'], $customerGroups)) {
+            throw new \Exception('Invalid customer group.');
+        }
+
+        // Handle 'fixed' price type
         if ($tierData['price_type'] === 'fixed') {
-            // Fixed price tiers should have null quantities
+            if (isset($tierData['min_quantity']) || isset($tierData['max_quantity'])) {
+                throw new \Exception('Fixed tier must not contain min and max quantity.');
+            }
             $tierData['min_quantity'] = null;
             $tierData['max_quantity'] = null;
-        } elseif ($tierData['price_type'] === 'range') {
+        }
+        // Handle 'range' price type
+        elseif ($tierData['price_type'] === 'range') {
             if (!isset($tierData['min_quantity']) || !isset($tierData['max_quantity']) || $tierData['max_quantity'] <= $tierData['min_quantity']) {
                 throw new \Exception('Invalid range quantities. Max quantity must be greater than Min quantity.');
             }
         }
 
+        // Ensure 'value' is greater than zero
         if (!isset($tierData['value']) || $tierData['value'] <= 0) {
             throw new \Exception('Invalid value. Value must be greater than zero.');
         }

@@ -37,7 +37,7 @@
 
                 <!-- Department -->
                 <div class="mb-4">
-                    <label for="department" class="block text-gray-700">Department</label>
+                    <label for="department" class="block text-gray-700">Section</label>
                     <input type="text" id="department" name="department" class="w-full px-3 py-2 border rounded-md"
                         value="{{ old('department', $ticket->department) }}" readonly>
                 </div>
@@ -91,10 +91,10 @@
                     @endif
 
                     <!--
-                                 @if (Auth::user()->role != 'user')
+                                     @if (Auth::user()->role != 'user')
     <input type="file" id="attachment" name="attachment" class="mt-2">
     @endif
-                            -->
+                                -->
 
                     <!-- Action Buttons -->
                     <div class="flex justify-start gap-2 mt-4">

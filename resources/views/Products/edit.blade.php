@@ -142,7 +142,7 @@
                                                     <label
                                                         class="block text-sm font-medium text-gray-700 mb-1">{{ __('Value') }}</label>
                                                     <div class="flex">
-                                                        <input type="number"
+                                                        <input type="number" step="0.01"
                                                             name="tiers[{{ $group }}][{{ $index }}][value]"
                                                             class="mt-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                                             value="{{ old("tiers.{$group}.{$index}.value", $tier->value) }}"
@@ -281,7 +281,7 @@
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Value') }}</label>
             <div class="flex">
-                <input type="number" name="tiers[${customerGroup}][${index}][value]" class="mt-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                <input type="number" name="tiers[${customerGroup}][${index}][value]" class="mt-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" step="0.01" required>
                 <select name="tiers[${customerGroup}][${index}][type]" class="mt-1 block rounded-r-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 border-l-0">
                     <option value="price">Price</option>
                     <option value="percentage">Percentage</option>

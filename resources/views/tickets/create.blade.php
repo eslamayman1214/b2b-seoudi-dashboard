@@ -19,7 +19,7 @@
 
                     <!-- Department -->
                     <div class="mb-4">
-                        <label for="department" class="block text-gray-700">Department</label>
+                        <label for="department" class="block text-gray-700">Section</label>
                         <input type="text" id="department" name="department" class="w-full px-3 py-2 border rounded-md"
                             value="{{ old('department') }}" required>
                     </div>

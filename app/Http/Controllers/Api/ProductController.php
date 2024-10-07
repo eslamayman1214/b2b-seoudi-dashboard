@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductFilterRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Models\Configuration;
 use App\Models\CronLog;
+use App\Models\CustomerGroup;
 use App\Models\Product;
 use App\Models\ProductVersion;
 use App\Services\ProductService;
@@ -75,12 +77,11 @@ class ProductController extends Controller
     public function sendProductDataToApi()
     {
         // Fetch all the edited products from the ProductVersion table
-        $editedProducts = ProductVersion::all();
+        $editedProducts = ProductVersion::all(); // No need for the 'with' method since 'tiers' is JSON
 
         // Check if there are any products to send
         if ($editedProducts->isEmpty()) {
             Log::info('No edited products to send.');
-            // Optionally, log to cron job status in the database here if needed.
             return response()->json(['message' => 'No edited products to send.'], 204);
         }
 
@@ -90,21 +91,59 @@ class ProductController extends Controller
         // Iterate over the edited products and build the payload
         foreach ($editedProducts as $productVersion) {
 
-            // $tiers = json_decode($productVersion->tiers, true);
+            // Decode the tiers JSON. Set to empty array if null or invalid JSON.
+            $tiers = json_decode($productVersion->tiers, true) ?? [];
 
-            // Prepare a detailed tiers array with each field separately
-            //$formattedTiers = [];
-            //foreach ($tiers as $tier) {
-            //  $formattedTiers[] = [
-            //    'tier_name' => $tier['tier_name'],
-            //  'min_quantity' => $tier['min_quantity'],
-            //'max_quantity' => $tier['max_quantity'],
-            // 'value' => $tier['value'],
-            // 'type' => $tier['type'],
-            // 'customer_group' => $tier['customer_group'],
-            // 'price_type' => $tier['price_type'],
-            //];
-            //}
+            // Initialize the formatted tiers array
+            $formattedTiers = [];
+            $counter = 1;
+
+            foreach ($tiers as $customerGroup => $tiersArray) {
+                if (!is_array($tiersArray)) {
+                    Log::warning("Tiers for customer group '{$customerGroup}' are not in expected format.");
+                    continue;
+                }
+
+                foreach ($tiersArray as $tier) {
+                    if (!isset($tier['tier_name'], $tier['price_type'], $tier['value'], $tier['type'])) {
+                        Log::warning("Incomplete tier data found for customer group '{$customerGroup}'. Skipping tier.");
+                        continue;
+                    }
+
+                    // Here we extract the customer group code from the tier JSON structure
+                    // $customerGroupCode = $customerGroup; // Assuming customerGroup key is the code
+                    $customerGroupModel = CustomerGroup::where('code', $customerGroup)->first();
+
+                    // Format the tier data depending on 'percentage' or 'price' type
+                    if ($tier['type'] === 'percentage') {
+                        $formattedTier = [
+                            'price_type' => $tier['price_type'],
+                            'percentage_value' => $tier['value'],
+                            'price' => null,
+                        ];
+                        if ($tier['price_type'] !== 'fixed') {
+                            $formattedTier['qty_from'] = $tier['min_quantity'];
+                            $formattedTier['qty_to'] = $tier['max_quantity'];
+                        }
+                    } elseif ($tier['type'] === 'price') {
+                        $formattedTier = [
+                            'price_type' => $tier['price_type'],
+                            'percentage_value' => null,
+                            'price' => $tier['value'],
+                        ];
+                        if ($tier['price_type'] !== 'fixed') {
+                            $formattedTier['qty_from'] = $tier['min_quantity'];
+                            $formattedTier['qty_to'] = $tier['max_quantity'];
+                        }
+                    }
+                    //$formattedTier['customer_group_code'] = $customerGroupModel->code;
+                    $formattedTier['customer_group_id'] = $customerGroupModel->group_id;
+                    $formattedTier['qty'] = $counter++;
+
+                    // Add to formatted tiers
+                    $formattedTiers[] = $formattedTier;
+                }
+            }
 
             // Add each product to the 'products' array in the payload
             $payload['products'][] = [
@@ -113,28 +152,34 @@ class ProductController extends Controller
                 'qty' => $productVersion->stock,
                 // 'product_id' => $productVersion->product_id,
                 // 'item_code' => $productVersion->item_code,
-                //'tiers' => $formattedTiers,
+                'tierPrices' => $formattedTiers,
                 // 'created_at' => $productVersion->created_at,
             ];
         }
 
-        // Uncomment the line below if you want to see the payload in development
-        //       dd($payload);
+        // Optionally, you can log the payload for debugging in a secure manner
+        // Log::info('Payload prepared for API:', $payload);
+        //dd($payload);
+
+        $productsEndpoint = Configuration::getValueByKey('products_endpoint');
+        $productsToken = Configuration::getValueByKey('products_token');
+        $baseUrl = Configuration::getValueByKey('base_url');
+        $fullUrl = $baseUrl . $productsEndpoint;
 
         try {
             // Create a new Guzzle client
             $client = new Client();
 
             // Send the payload to the external API using a POST request
-            $response = $client->post('http://10.1.94.101/rest/V1/seoudi/update-product', [
+            $response = $client->post($fullUrl, [
                 'json' => $payload, // The payload to send
                 'headers' => [
-                    'Authorization' => 'Bearer 5ffs6yf7snkspg1z99o7zhriubn92at8', // Bearer token for authentication
+                    'Authorization' => 'Bearer ' . $productsToken, // Consider using environment variables
                     'Accept' => 'application/json',
                 ],
                 'verify' => false, // Optional: Disable SSL verification if needed
             ]);
-
+            $responseBody = json_decode($response->getBody(), true);
             // Check if the response status code is 200 (success)
             if ($response->getStatusCode() === 200) {
                 // Clear the product_versions table after a successful API response
@@ -145,7 +190,7 @@ class ProductController extends Controller
                 Log::info("Sent " . count($payload['products']) . " products at " . Carbon::now());
 
                 // Return a JSON response indicating success
-                return response()->json(['message' => 'Products sent successfully'], 200);
+                return response()->json(['message' => 'Products sent successfully' . $responseBody], 200);
             } else {
                 // Log an error if the API responded with a non-200 status code
                 $this->logCronJob(count($payload['products']), 'Failure');
@@ -161,7 +206,7 @@ class ProductController extends Controller
             Log::error("API call failed: " . $e->getMessage());
 
             // Return a JSON response indicating the API call failure
-            return response()->json(['message' => 'API call failed'], 500);
+            return response()->json(['message' => 'API call failed' . $e->getMessage()], 500);
         }
     }
 
