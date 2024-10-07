@@ -61,7 +61,7 @@
                         <thead>
                             <tr>
                                 <th class="py-2 px-4 border-b border-gray-200">Ticket ID</th>
-                                <th class="py-2 px-4 border-b border-gray-200">Department</th>
+                                <th class="py-2 px-4 border-b border-gray-200">Section</th>
                                 <th class="py-2 px-4 border-b border-gray-200">Email</th>
                                 <th class="py-2 px-4 border-b border-gray-200">Status</th>
                                 <th class="py-2 px-4 border-b border-gray-200">Assignee</th>

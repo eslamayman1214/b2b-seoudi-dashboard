@@ -1,5 +1,5 @@
 <x-layout>
-    @section('title', 'change-password')
+    @section('title', 'Change Password')
     @section('content')
         <div class="container mx-auto mt-8">
             <div class="max-w-md mx-auto bg-white p-8 border border-gray-300">
@@ -47,5 +47,27 @@
                 </form>
             </div>
         </div>
+
+        @if (session('success'))
+            <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '{{ session('success') }}',
+                    confirmButtonColor: '#4CAF50'
+                });
+            </script>
+        @endif
+
+        @if (session('error'))
+            <script>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: '{{ session('error') }}',
+                    confirmButtonColor: '#F44336'
+                });
+            </script>
+        @endif
     @endsection
 </x-layout>

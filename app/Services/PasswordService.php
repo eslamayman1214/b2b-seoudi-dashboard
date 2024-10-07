@@ -17,11 +17,16 @@ class PasswordService
     {
         $user = Auth::user();
 
+        // Check if the old password matches
         if (!Hash::check($request->old_password, $user->password)) {
             return back()->withErrors(['old_password' => 'The old password is incorrect.']);
         }
+        // Check if new password is the same as the old one
+        if ($request->old_password === $request->new_password) {
+            return back()->with('error', 'New password cannot be the same as the old password.');
+        }
 
         $user->update(['password' => Hash::make($request->new_password)]);
-        return redirect()->route('products.index')->with('success', 'Password changed successfully.');
+        return back()->with('success', 'Password updated successfully!');
     }
 }

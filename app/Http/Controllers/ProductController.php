@@ -22,18 +22,24 @@ class ProductController extends Controller
     }
     public function index(ProductFilterRequest $request)
     {
-        $products = $this->productService->getProducts($request);
-
         // Extract variables from the request
         $sku = $request->input('sku');
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+
+        // Apply default only if `start_date` is not set but `end_date` is provided
+        $startDate = $request->input('start_date') ?? ($request->has('end_date') ? '2024-03-01' : null);
+
+        // Apply default only if `end_date` is not set but `start_date` is provided
+        $endDate = $request->input('end_date') ?? ($request->has('start_date') ? now()->format('Y-m-d') : null);
+
         $sortField = $request->input('sort_field', 'id');
         $sortDirection = $request->input('sort_direction', 'asc');
         $perPage = $request->input('per_page', 25);
 
         // Log the action
         $this->logService->logAction('View Products', 'Products page viewed.');
+
+        // Get products based on filter request
+        $products = $this->productService->getProducts($request);
 
         return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection', 'perPage'));
     }
@@ -206,7 +212,7 @@ class ProductController extends Controller
         }
     }
 
-    private function fetchCustomerGroups()
+    public function fetchCustomerGroups()
     {
         try {
             // Fetch the configuration values from the Configuration model
@@ -265,5 +271,4 @@ class ProductController extends Controller
             return back()->withErrors(['tiers_csv_file' => $e->getMessage()]);
         }
     }
-
 }

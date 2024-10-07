@@ -30,7 +30,8 @@
                         </label>
                     </div>
                     <div class="mt-4">
-                        <button type="submit" class="text-white px-4 py-2 rounded" id="save-button-logging" disabled>
+                        <button type="submit" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded"
+                            id="save-button-logging" disabled>
                             Save Settings
                         </button>
                     </div>
@@ -38,7 +39,7 @@
             </form>
 
             <!-- API Settings Form -->
-            <form action="{{ route('settings.saveSettings') }}" method="POST" class="mb-4">
+            <form action="{{ route('settings.saveSettings') }}" method="POST" class="mb-4" id="api-settings-form">
                 @csrf
                 <fieldset class="border border-gray-300 rounded p-4" id="API">
                     <legend class="text-lg font-medium">API Settings</legend>
@@ -75,8 +76,22 @@
                             class="form-input mt-1 block w-full">
                     </div>
 
-                    <div class="mt-4">
-                        <button type="submit" class="text-white bg-blue-500 hover:bg-blue-700 px-4 py-2 rounded"
+                    <!-- Buttons Container -->
+                    <div class="mt-6 flex space-x-4">
+                        <!-- Fetch Customer Groups Button -->
+                        <button type="button" id="fetch-customer-groups-btn"
+                            class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <i class="fas fa-users mr-2"></i> Fetch Customer Groups
+                        </button>
+
+                        <!-- Fetch Products Button -->
+                        <button type="button" id="fetch-products-btn"
+                            class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                            <i class="fas fa-box mr-2"></i> Sync Products
+                        </button>
+
+                        <!-- Save Settings Button -->
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded"
                             id="save-button-api" disabled>
                             Save Settings
                         </button>
@@ -84,7 +99,11 @@
                 </fieldset>
             </form>
         </div>
-        <!-- JavaScript to handle save button state for logging and API -->
+
+        <!-- SweetAlert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <!-- JavaScript to handle button states and AJAX requests -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Logging Save Button Logic
@@ -167,6 +186,114 @@
                 });
 
                 updateButtonStateApi(); // Initialize the button state
+
+                // Fetch Customer Groups Button Logic
+                const fetchCustomerGroupsBtn = document.getElementById('fetch-customer-groups-btn');
+                fetchCustomerGroupsBtn.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Fetching Customer Groups...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch("{{ route('settings.fetchCustomerGroups') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({})
+                        })
+                        .then(response => response.json().then(data => ({
+                            status: response.status,
+                            body: data
+                        })))
+                        .then(({
+                            status,
+                            body
+                        }) => {
+                            if (status === 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: body.message || 'Customer groups fetched successfully.',
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: body.message || 'Failed to fetch customer groups.',
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'An unexpected error occurred.',
+                            });
+                            console.error('Error fetching customer groups:', error);
+                        });
+                });
+
+                // Fetch Products Button Logic
+                const fetchProductsBtn = document.getElementById('fetch-products-btn');
+                fetchProductsBtn.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Sending Products to API...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch("{{ route('settings.fetchProducts') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({})
+                        })
+                        .then(response => response.json().then(data => ({
+                            status: response.status,
+                            body: data
+                        })))
+                        .then(({
+                            status,
+                            body
+                        }) => {
+                            if (status === 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: body.message || 'Products sent successfully.',
+                                });
+                            } else if (status === 204) {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'No Content',
+                                    text: body.message || 'No edited products to send.',
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: body.message || 'Failed to send products.',
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'An unexpected error occurred.',
+                            });
+                            console.error('Error sending products:', error);
+                        });
+                });
             });
         </script>
     @endsection
