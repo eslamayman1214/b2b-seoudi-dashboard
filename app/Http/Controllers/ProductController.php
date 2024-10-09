@@ -244,7 +244,7 @@ class ProductController extends Controller
             foreach ($body['items'] as $group) {
                 // Store customer groups in the database if they don’t exist
                 CustomerGroup::firstOrCreate(
-                    ['code' => $group['code']], // Store 'code' as 'code'
+                    ['code' => strtoupper($group['code'])], // Store 'code' as 'code'
                     ['group_id' => $group['id']]// Store 'id' as 'group_id'
                 );
             }
