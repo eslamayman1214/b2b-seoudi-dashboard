@@ -25,11 +25,15 @@ class ProductController extends Controller
         // Extract variables from the request
         $sku = $request->input('sku');
 
-        // Apply default only if `start_date` is not set but `end_date` is provided
-        $startDate = $request->input('start_date') ?? ($request->has('end_date') ? '2024-03-01' : null);
+        // If the user submitted the form but didn't provide start or end dates, use default values
+        $startDate = $request->filled('start_date') ? $request->input('start_date') : null;
+        $endDate = $request->filled('end_date') ? $request->input('end_date') : null;
 
-        // Apply default only if `end_date` is not set but `start_date` is provided
-        $endDate = $request->input('end_date') ?? ($request->has('start_date') ? now()->format('Y-m-d') : null);
+        // Apply defaults only if the user hits the filter and leaves date fields empty
+        if ($request->isMethod('get') && $request->has('sku')) {
+            $startDate = $startDate ?? '2024-09-01'; // Default to 1st September if not provided
+            $endDate = $endDate ?? now()->format('Y-m-d'); // Default to today if not provided
+        }
 
         $sortField = $request->input('sort_field', 'id');
         $sortDirection = $request->input('sort_direction', 'asc');
@@ -38,9 +42,13 @@ class ProductController extends Controller
         // Log the action
         $this->logService->logAction('View Products', 'Products page viewed.');
 
-        // Get products based on filter request
-        $products = $this->productService->getProducts($request);
+        // Merge the default values for start and end dates into the request if needed
+        $products = $this->productService->getProducts($request->merge([
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ]));
 
+        // Return view with all variables, without setting default date values in input fields
         return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection', 'perPage'));
     }
 
@@ -97,8 +105,15 @@ class ProductController extends Controller
             Log::info('Received update request for product ID: ' . $id);
             Log::info('Request data:', $request->all());
 
+            $changesDetected = false;
+
             // Update the main product details
             $product = $this->productService->updateProduct($request, $id);
+
+            // Check if main product details were changed
+            if ($product->wasChanged()) {
+                $changesDetected = true;
+            }
 
             // Handle tiers update
             $tiersData = $request->input('tiers', []);
@@ -114,7 +129,10 @@ class ProductController extends Controller
             }
 
             // Remove tiers not in the request
-            $product->tiers()->whereNotIn('id', $existingTierIds)->delete();
+            $deletedTiers = $product->tiers()->whereNotIn('id', $existingTierIds)->delete();
+            if ($deletedTiers > 0) {
+                $changesDetected = true;
+            }
 
             // Update or create tiers
             foreach ($tiersData as $customerGroup => &$tiers) {
@@ -133,7 +151,11 @@ class ProductController extends Controller
                                 // Update the $tiersData array as well
                                 $tiers[$index]['price_type'] = $tier->price_type;
                             }
+                            $originalTier = $tier->getOriginal();
                             $tier->update($tierData);
+                            if ($tier->wasChanged()) {
+                                $changesDetected = true;
+                            }
                             Log::info("Updated existing tier: " . $tier->id);
                         } else {
                             throw new \Exception("Tier with ID {$tierData['id']} not found.");
@@ -144,6 +166,7 @@ class ProductController extends Controller
                         // Update the $tiersData array as well
                         $tiers[$index]['price_type'] = $tierData['price_type'];
                         $newTier = $product->tiers()->create($tierData);
+                        $changesDetected = true;
                         Log::info("Created new tier: " . $newTier->id);
                     }
                 }
@@ -153,7 +176,12 @@ class ProductController extends Controller
 
             // Log and redirect
             $this->logService->logAction('Update Product', "Product updated with ID: {$id}");
-            return back()->with('success', 'Product updated successfully.');
+
+            if ($changesDetected) {
+                return back()->with('success', 'Product updated successfully.');
+            } else {
+                return back()->with('info', 'No changes detected.');
+            }
 
         } catch (\Exception $e) {
             DB::rollBack();

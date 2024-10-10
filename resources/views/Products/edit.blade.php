@@ -21,6 +21,11 @@
                             <p>{{ session('success') }}</p>
                         </div>
                     @endif
+                    @if (session('info'))
+                        <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6" role="alert">
+                            <p>{{ session('info') }}</p>
+                        </div>
+                    @endif
                     @if (session('fail'))
                         <div class="mt-4 p-4 bg-red-100 text-red-700 rounded-md mb-6">
                             {{ session('fail') }}
@@ -435,7 +440,7 @@
                         });
 
                         const tierNameInput = tier.querySelector('input[name*="[tier_name]"]');
-                        tierNameInput.value = `${customerGroup}_tier${index + 1}`;
+                        tierNameInput.value = `${customerGroup}_TIER${index + 1}`;
 
                         const priceTypeSelect = tier.querySelector('.price-type-select');
                         priceTypeSelect.setAttribute('data-index', index);

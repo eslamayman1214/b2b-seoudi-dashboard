@@ -7,10 +7,10 @@
                 <div class="flex items-center space-x-4">
                     <input type="text" name="sku" value="{{ $sku }}" placeholder="Search by SKU..."
                         class="w-full px-4 py-2 border border-gray-300 rounded-md outline-none placeholder-gray-500">
-                    <input type="text" id="start_date" name="start_date" value="{{ $startDate }}"
+                    <input type="text" id="start_date" name="start_date" value="{{ $startDate ?? '' }}"
                         placeholder="Start Date"
                         class="px-4 py-2 border border-gray-300 rounded-md outline-none placeholder-gray-500">
-                    <input type="text" id="end_date" name="end_date" value="{{ $endDate }}" placeholder="End Date"
+                    <input type="text" id="end_date" name="end_date" value="{{ $endDate ?? '' }}" placeholder="End Date"
                         class="px-4 py-2 border border-gray-300 rounded-md outline-none placeholder-gray-500">
                     <button type="submit" class="px-4 py-2 bg-blue-200 hover:bg-blue-300">
                         Filter

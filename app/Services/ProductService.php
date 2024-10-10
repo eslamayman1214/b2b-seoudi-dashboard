@@ -40,6 +40,11 @@ class ProductService
             }
 
             if (isset($row[0]) && isset($row[1]) && isset($row[2]) && isset($row[3])) {
+
+                // Validate that price and stock are numeric
+                if (!is_numeric($row[2]) || !is_numeric($row[3])) {
+                    throw new \Exception("Row $index: Price and Stock must be valid numbers.");
+                }
                 $existingProduct = Product::where('sku', $row[1])->orWhere('item_code', $row[0])->first();
 
                 if ($existingProduct) {
