@@ -72,7 +72,7 @@
                             @foreach ($tickets as $ticket)
                                 <tr>
                                     <td class="border px-4 py-2">{{ $ticket->id }}</td>
-                                    <td class="border px-4 py-2">{{ $ticket->department }}</td>
+                                    <td class="border px-4 py-2">{{ $ticket->section }}</td>
                                     <td class="border px-4 py-2">{{ $ticket->email }}</td>
                                     <td class="border px-4 py-2">
                                         <select class="border rounded-md" name="status" id="status_{{ $ticket->id }}">
@@ -83,6 +83,8 @@
                                             </option>
                                             <option value="resolved" {{ $ticket->status == 'resolved' ? 'selected' : '' }}>
                                                 Resolved</option>
+                                            <option value="re-open" {{ $ticket->status == 're-open' ? 'selected' : '' }}>
+                                                Re-open</option>
                                         </select>
                                     </td>
                                     <td class="border px-4 py-2">

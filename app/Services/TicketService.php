@@ -58,7 +58,7 @@ class TicketService
         try {
             $ticket = new Ticket();
             $ticket->description = $request->input('description');
-            $ticket->department = $request->input('department');
+            $ticket->section = $request->input('section');
             $ticket->email = $request->input('email');
             $ticket->status = $request->input('status');
             $ticket->assigned = $request->input('assigned');
@@ -72,7 +72,7 @@ class TicketService
 
             $ticket->save();
 
-            return redirect()->route('tickets.index')->with('success', 'Ticket created successfully.');
+            return redirect()->back()->with('success', 'Ticket created successfully.');
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Failed to create ticket: ' . $e->getMessage());
         }
@@ -84,22 +84,10 @@ class TicketService
             $ticket = Ticket::findOrFail($id);
             $user = Auth::user();
 
-            if ($user->role === 'admin') {
-                $ticket->status = $request->input('status');
+            if ($user->role === 'admin' || $user->role === 'super admin') {
                 $ticket->assigned = $request->input('assigned');
-            } elseif ($user->role === 'user') {
-                $ticket->status = $request->input('status');
-                if ($ticket->assigned !== $user->id) {
-                    $ticket->assigned = $user->id;
-                }
             }
-
-            if ($request->hasFile('attachment')) {
-                $file = $request->file('attachment');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('attachments', $fileName, 'public');
-                $ticket->attachment = $filePath;
-            }
+            $ticket->status = $request->input('status');
 
             $ticket->save();
 
@@ -113,10 +101,12 @@ class TicketService
     {
         try {
             $ticket = Ticket::findOrFail($id);
+            $user = Auth::user();
+            if ($user->role === 'admin' || $user->role === 'super admin') {
+                $ticket->assigned = $request->input('assigned');
+            }
             $ticket->status = $request->input('status');
-            $ticket->assigned = $request->input('assigned');
             $ticket->save();
-
             return response()->json(['success' => true, 'message' => 'Ticket updated successfully']);
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => 'Failed to update ticket: ' . $e->getMessage()], 500);
@@ -189,7 +179,7 @@ class TicketService
             // Create a new ticket with default status as 'pending' and assigned as null
             $ticket = new Ticket();
             $ticket->description = $request->input('description');
-            $ticket->department = $request->input('department');
+            $ticket->section = $request->input('section');
             $ticket->email = $email;
             $ticket->status = 'pending'; // Always store as 'pending'
             $ticket->assigned = null; // Always store as null
