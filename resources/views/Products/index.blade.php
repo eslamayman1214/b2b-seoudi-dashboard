@@ -18,6 +18,17 @@
                     <a href="/" class="px-4 py-2 bg-gray-200 hover:bg-gray-300">
                         Reset
                     </a>
+                    <!-- Add Product Button -->
+                    <button id="addProductButton" type="button"
+                        class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Add Product
+                    </button>
                 </div>
             </form>
 
@@ -77,7 +88,7 @@
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M12 19l9 2-2-9-9-2-9 2 2 9 9-2zm0 0v-8m0 0-4 4m4-4 4 4" />
+                                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                 </svg>
                                             </a>
                                         </td>
@@ -109,6 +120,45 @@
                     </div>
                 </div>
             @endif
+            <!-- Modal for Adding Product -->
+            <div id="addProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
+                <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                    <h2 class="text-2xl font-bold mb-4">Add New Product</h2>
+                    <form id="addProductForm" method="POST" action="{{ route('products.store') }}">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="item_code" class="block text-sm font-medium text-gray-700 mb-1">Item Code</label>
+                            <input type="text" name="item_code" id="item_code"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-red-500 text-xs mt-1 hidden" id="item_code_error"></p>
+                        </div>
+                        <div class="mb-4">
+                            <label for="sku" class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
+                            <input type="text" name="sku" id="sku"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-red-500 text-xs mt-1 hidden" id="sku_error"></p>
+                        </div>
+                        <div class="mb-4">
+                            <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                            <input type="number" name="price" id="price" step="0.01"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-red-500 text-xs mt-1 hidden" id="price_error"></p>
+                        </div>
+                        <div class="mb-4">
+                            <label for="stock" class="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                            <input type="number" name="stock" id="stock"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-red-500 text-xs mt-1 hidden" id="stock_error"></p>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit"
+                                class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300">Save</button>
+                            <button type="button" id="closeModal"
+                                class="ml-2 px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition duration-300">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- Include Flatpickr -->
@@ -116,6 +166,7 @@
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // Flatpickr initialization
                 flatpickr("#start_date", {
                     dateFormat: "Y-m-d",
                     maxDate: "today",
@@ -131,6 +182,90 @@
                         let startDatePicker = document.querySelector("#start_date")._flatpickr;
                         startDatePicker.set('maxDate', dateStr);
                     }
+                });
+
+                // Modal functionality
+                const modal = document.getElementById('addProductModal');
+                const addProductButton = document.getElementById('addProductButton');
+                const closeModal = document.getElementById('closeModal');
+                const addProductForm = document.getElementById('addProductForm');
+
+                addProductButton.addEventListener('click', () => {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                });
+
+                closeModal.addEventListener('click', () => {
+                    closeModalAndResetForm();
+                });
+
+                // Close modal when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModalAndResetForm();
+                    }
+                });
+
+                function closeModalAndResetForm() {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    addProductForm.reset();
+                    clearErrors();
+                }
+
+                function clearErrors() {
+                    const errorElements = document.querySelectorAll('[id$="_error"]');
+                    errorElements.forEach(el => {
+                        el.textContent = '';
+                        el.classList.add('hidden');
+                    });
+                }
+
+                // Form submission
+                addProductForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    clearErrors();
+
+                    fetch('{{ route('products.store') }}', {
+                            method: 'POST',
+                            body: new FormData(this),
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                            },
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Product added successfully.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                }).then(() => {
+                                    closeModalAndResetForm();
+                                    window.location.reload();
+                                });
+                            } else {
+                                if (data.errors) {
+                                    Object.keys(data.errors).forEach(key => {
+                                        const errorElement = document.getElementById(
+                                            `${key}_error`);
+                                        if (errorElement) {
+                                            errorElement.textContent = data.errors[key][0];
+                                            errorElement.classList.remove('hidden');
+                                        }
+                                    });
+                                } else {
+                                    // Handle general error
+                                    Swal.fire('Error', 'Failed to save the product.', 'error');
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error', 'Failed to save the product.', 'error');
+                        });
                 });
             });
         </script>

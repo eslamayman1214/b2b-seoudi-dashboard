@@ -27,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
         Route::put('{id}', [ProductController::class, 'update'])->name('products.update');
         Route::post('upload-tiers', [ProductController::class, 'uploadTiers'])->name('tiers.upload');
+        Route::post('store', [ProductController::class, 'store'])->name('products.store');
 
     });
 

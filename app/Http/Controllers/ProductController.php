@@ -8,9 +8,13 @@ use App\Http\Requests\UploadProductRequest;
 use App\Http\Requests\UploadTierRequest;
 use App\Models\Configuration;
 use App\Models\CustomerGroup;
+use App\Models\Product;
+use App\Models\ProductVersion;
 use App\Models\Tier;
 use App\Services\LogService;
 use App\Services\ProductService;
+use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
@@ -50,6 +54,42 @@ class ProductController extends Controller
 
         // Return view with all variables, without setting default date values in input fields
         return view('products.index', compact('products', 'sku', 'startDate', 'endDate', 'sortField', 'sortDirection', 'perPage'));
+    }
+    public function store(Request $request)
+    {
+        $validatedData = $request->validate([
+            'item_code' => 'required|string|max:255|unique:products,item_code,',
+            'sku' => 'required|string|max:255|unique:products,sku,',
+            'price' => 'required|numeric',
+            'stock' => 'required|numeric',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $existingProduct = Product::where('sku', $validatedData['sku'])
+                ->orWhere('item_code', $validatedData['item_code'])
+                ->first();
+
+            if ($existingProduct) {
+                throw new Exception('This product already exists.');
+
+            }
+            $product = Product::create($validatedData);
+
+            $versionData = array_merge($validatedData, [
+                'product_id' => $product->id,
+                'tiers' => $product->tiers ?? [],
+            ]);
+            ProductVersion::create($versionData);
+
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Product saved successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to save the product.', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function uploadfile()
@@ -171,7 +211,10 @@ class ProductController extends Controller
                     }
                 }
             }
-
+            // Update the updated_at timestamp if changes were detected
+            if ($changesDetected) {
+                $product->touch();
+            }
             DB::commit();
 
             // Log and redirect
