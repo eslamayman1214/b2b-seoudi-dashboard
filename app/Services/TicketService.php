@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Http\Requests\TicketRequest;
 use App\Models\Ticket;
+use App\Models\TicketPerformance;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class TicketService
 {
@@ -40,6 +43,7 @@ class TicketService
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Failed to load tickets: ' . $e->getMessage());
         }
+
     }
 
     public function loadCreatePage()
@@ -51,11 +55,14 @@ class TicketService
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Failed to load ticket creation page: ' . $e->getMessage());
         }
+
     }
 
     public function storeTicket(TicketRequest $request)
     {
         try {
+            DB::beginTransaction();
+
             $ticket = new Ticket();
             $ticket->description = $request->input('description');
             $ticket->section = $request->input('section');
@@ -72,8 +79,14 @@ class TicketService
 
             $ticket->save();
 
+            // Create initial TicketPerformance record
+            $this->createTicketPerformance($ticket);
+
+            DB::commit();
+
             return redirect()->back()->with('success', 'Ticket created successfully.');
         } catch (Exception $e) {
+            DB::rollBack();
             return redirect()->back()->with('error', 'Failed to create ticket: ' . $e->getMessage());
         }
     }
@@ -81,8 +94,12 @@ class TicketService
     public function updateTicket(TicketRequest $request, $id)
     {
         try {
+            DB::beginTransaction();
+
             $ticket = Ticket::findOrFail($id);
             $user = Auth::user();
+            $oldStatus = $ticket->status;
+            $oldAssigned = $ticket->assigned;
 
             if ($user->role === 'admin' || $user->role === 'super admin') {
                 $ticket->assigned = $request->input('assigned');
@@ -91,8 +108,14 @@ class TicketService
 
             $ticket->save();
 
+            // Update TicketPerformance record
+            $this->updateTicketPerformance($ticket, $oldStatus, $oldAssigned);
+
+            DB::commit();
+
             return response()->json(['success' => true, 'message' => 'Ticket updated successfully']);
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Failed to update ticket: ' . $e->getMessage()], 500);
         }
     }
@@ -100,15 +123,28 @@ class TicketService
     public function updateTicketIndex($request, $id)
     {
         try {
+            DB::beginTransaction();
+
             $ticket = Ticket::findOrFail($id);
             $user = Auth::user();
+            $oldStatus = $ticket->status;
+            $oldAssigned = $ticket->assigned;
+
             if ($user->role === 'admin' || $user->role === 'super admin') {
                 $ticket->assigned = $request->input('assigned');
             }
             $ticket->status = $request->input('status');
+
             $ticket->save();
+
+            // Update TicketPerformance record
+            $this->updateTicketPerformance($ticket, $oldStatus, $oldAssigned);
+
+            DB::commit();
+
             return response()->json(['success' => true, 'message' => 'Ticket updated successfully']);
         } catch (Exception $e) {
+            DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Failed to update ticket: ' . $e->getMessage()], 500);
         }
     }
@@ -127,6 +163,7 @@ class TicketService
         } catch (Exception $e) {
             return response()->json(['error' => 'Failed to download attachment: ' . $e->getMessage()], 500);
         }
+
     }
 
     public function showTicket($id)
@@ -138,6 +175,7 @@ class TicketService
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Failed to load ticket details: ' . $e->getMessage());
         }
+
     }
 
     public function deleteTicket($id)
@@ -149,42 +187,40 @@ class TicketService
         } catch (Exception $e) {
             return response()->json(['error' => 'Failed to delete ticket: ' . $e->getMessage()], 500);
         }
-    }
 
+    }
     /*
      ** API Controller Methods **
      */
+
     public function storeTicketAPI($request)
     {
         try {
+            DB::beginTransaction();
+
             $email = $request->input('email');
             $minuteKey = 'ticket_request_limit_' . $email;
             $dailyKey = 'daily_ticket_requests_' . $email;
 
-            // Check if the user has sent a request within the last minute
             if (Cache::has($minuteKey)) {
                 return response()->json(['message' => 'You can only submit one ticket every minute.'], 429);
             }
 
-            // Check how many requests have been made today
             $dailyRequestCount = Cache::get($dailyKey, 0);
             if ($dailyRequestCount >= 5) {
                 return response()->json(['message' => 'You have reached the daily limit of 5 tickets for this email.'], 429);
             }
 
-            // Increment daily request count and set minute cooldown
-            Cache::put($minuteKey, true, now()->addMinute()); // 1 minute limit
-            Cache::put($dailyKey, $dailyRequestCount + 1, now()->addDay()); // Daily limit
+            Cache::put($minuteKey, true, now()->addMinute());
+            Cache::put($dailyKey, $dailyRequestCount + 1, now()->addDay());
 
-            // Create a new ticket with default status as 'pending' and assigned as null
             $ticket = new Ticket();
             $ticket->description = $request->input('description');
             $ticket->section = $request->input('section');
             $ticket->email = $email;
-            $ticket->status = 'pending'; // Always store as 'pending'
-            $ticket->assigned = null; // Always store as null
+            $ticket->status = 'pending';
+            $ticket->assigned = null;
 
-            // Handle file upload if an attachment is provided
             if ($request->hasFile('attachment')) {
                 $file = $request->file('attachment');
                 $fileName = time() . '_' . $file->getClientOriginalName();
@@ -192,23 +228,132 @@ class TicketService
                 $ticket->attachment = $filePath;
             }
 
-            // Save the ticket
             $ticket->save();
 
-            // Return JSON response with the newly created ticket
+            // Create initial TicketPerformance record
+            $this->createTicketPerformance($ticket);
+
+            DB::commit();
+
             return response()->json([
                 'message' => 'Ticket created successfully.',
                 'ticket' => $ticket,
             ], 201);
         } catch (\Exception $e) {
-            // Log the error if you have a logging service (optional)
-            // $this->logService->logError('Error creating ticket via API', $e->getMessage());
-
-            // Handle exceptions and return error response
+            DB::rollBack();
             return response()->json([
                 'error' => 'Failed to create ticket.',
                 'message' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    // New methods for SLA functionality
+
+    private function createTicketPerformance(Ticket $ticket)
+    {
+        $performance = new TicketPerformance();
+        $performance->ticket_id = $ticket->id;
+        $performance->user_id = $ticket->assigned;
+        $performance->user_name = $ticket->assigned ? User::find($ticket->assigned)->name : null;
+        $performance->ticket_created_date = $ticket->created_at;
+        $performance->assigned_date = $ticket->assigned ? now() : null;
+        $performance->sla_status = 'in_sla';
+
+        if ($ticket->assigned) {
+            $performance->pending_date = now();
+        }
+
+        if ($ticket->status == 'in_progress') {
+            $performance->in_progress_date = now();
+        }
+
+        $performance->save();
+    }
+
+    private function updateTicketPerformance(Ticket $ticket, $oldStatus, $oldAssigned)
+    {
+        $performance = TicketPerformance::where('ticket_id', $ticket->id)
+            ->whereNull('resolved_date')
+            ->latest()
+            ->first();
+
+        if (!$performance) {
+            $this->createTicketPerformance($ticket);
+            return;
+        }
+
+        $now = now();
+
+        // If no open performance record exists or status is changing from resolved, create a new one
+        if (!$performance || ($oldStatus == 'resolved' && $ticket->status != 'resolved')) {
+            if ($performance) {
+                $this->closeTicketPerformance($performance, $now);
+            }
+            $this->createTicketPerformance($ticket);
+            return;
+        }
+
+        // Handle assignee changes
+        if ($oldAssigned !== $ticket->assigned) {
+            if ($oldAssigned === null) {
+                // Ticket was unassigned and is now being assigned
+                $performance->user_id = $ticket->assigned;
+                $performance->user_name = User::find($ticket->assigned)->name;
+                $performance->assigned_date = $now;
+                if ($performance->pending_date === null) {
+                    $performance->pending_date = $now;
+                }
+            } elseif ($ticket->assigned === null) {
+                // Ticket is being unassigned, create a new record
+                $this->closeTicketPerformance($performance, $now);
+                $this->createTicketPerformance($ticket);
+                return;
+            } else {
+                // Changing from one assigned user to another, create a new record
+                $this->closeTicketPerformance($performance, $now);
+                $this->createTicketPerformance($ticket);
+                return;
+            }
+        }
+
+        // Update status-related dates
+        if ($ticket->status == 'resolved' && $oldStatus != 'resolved') {
+            $performance->resolved_date = $now;
+        } elseif ($oldStatus == 'resolved' && $ticket->status != 'resolved') {
+            $performance->resolved_date = null;
+        }
+
+        // Handle in-progress date
+        if ($ticket->status == 'in_progress' && $performance->in_progress_date === null) {
+            $performance->in_progress_date = $now;
+        }
+
+        $this->calculateSLADuration($performance);
+        $performance->save();
+    }
+
+    private function closeTicketPerformance(TicketPerformance $performance, $closeDate)
+    {
+        if ($performance->resolved_date === null) {
+            $performance->resolved_date = $closeDate;
+        }
+        $this->calculateSLADuration($performance);
+        $performance->save();
+    }
+
+    private function calculateSLADuration(TicketPerformance $performance)
+    {
+        if ($performance->assigned_date) {
+            $assignedDate = Carbon::parse($performance->assigned_date);
+            $endDate = $performance->resolved_date ? Carbon::parse($performance->resolved_date) : now();
+
+            $duration = $endDate->diffInHours($assignedDate);
+            $performance->sla_duration = $duration;
+            $performance->sla_status = $duration > 24 ? 'out_sla' : 'in_sla';
+        } else {
+            $performance->sla_duration = null;
+            $performance->sla_status = null;
         }
     }
 }

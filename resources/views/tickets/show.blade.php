@@ -57,7 +57,6 @@
                         <option value="in progress" {{ $ticket->status == 'in progress' ? 'selected' : '' }}>In Progress
                         </option>
                         <option value="resolved" {{ $ticket->status == 'resolved' ? 'selected' : '' }}>Resolved</option>
-                        <option value="re-open" {{ $ticket->status == 're-open' ? 'selected' : '' }}>Re-open</option>
                     </select>
                 </div>
 
@@ -92,10 +91,10 @@
                     @endif
 
                     <!--
-                                                 @if (Auth::user()->role != 'user')
+                                                     @if (Auth::user()->role != 'user')
     <input type="file" id="attachment" name="attachment" class="mt-2">
     @endif
-                                            -->
+                                                -->
 
                     <!-- Action Buttons -->
                     <div class="flex justify-start gap-2 mt-4">

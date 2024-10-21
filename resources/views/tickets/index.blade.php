@@ -83,8 +83,6 @@
                                             </option>
                                             <option value="resolved" {{ $ticket->status == 'resolved' ? 'selected' : '' }}>
                                                 Resolved</option>
-                                            <option value="re-open" {{ $ticket->status == 're-open' ? 'selected' : '' }}>
-                                                Re-open</option>
                                         </select>
                                     </td>
                                     <td class="border px-4 py-2">

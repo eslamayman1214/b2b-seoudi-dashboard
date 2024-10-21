@@ -19,7 +19,7 @@ class CreateTicketsTable extends Migration
             $table->string('section'); // Section associated with the ticket
             $table->string('email'); // Email of the user reporting the issue
             $table->string('attachment')->nullable(); // Attachment path (optional)
-            $table->enum('status', ['pending', 'in progress', 'resolved', 're-open'])->default('pending'); // Status of the ticket
+            $table->enum('status', ['pending', 'in progress', 'resolved'])->default('pending'); // Status of the ticket
             $table->string('assigned')->nullable(); // Name of the assignee, if assigned
             $table->timestamps(); // Automatically includes created_at and updated_at
         });

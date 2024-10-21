@@ -68,7 +68,6 @@
                             <option value="pending" selected>Pending</option>
                             <option value="in progress">In Progress</option>
                             <option value="resolved">Resolved</option>
-                            <option value="re-open">Re-open</option>
                         </select>
                     </div>
 
