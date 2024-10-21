@@ -17,8 +17,9 @@ class SettingService
         $baseUrl = Configuration::where('key', 'base_url')->value('value');
         $productsEndpoint = Configuration::where('key', 'products_endpoint')->value('value');
         $productsToken = Configuration::where('key', 'products_token')->value('value');
+        $slaLimit = Configuration::where('key', 'sla_limit')->value('value');
 
-        return compact('loggingEnabled', 'customerEndpoint', 'customerToken', 'baseUrl', 'productsEndpoint', 'productsToken');
+        return compact('loggingEnabled', 'customerEndpoint', 'customerToken', 'baseUrl', 'productsEndpoint', 'productsToken', 'slaLimit');
     }
 
     public function saveSettings(Request $request)
@@ -55,7 +56,21 @@ class SettingService
         ]);
 
     }
-
+    public function saveSlaLimit(Request $request)
+    {
+        $request->validate([
+            'sla_limit' => 'required|integer|min:1',
+        ]);
+        $settings = [
+            'sla_limit' => $request->input('sla_limit'),
+        ];
+        foreach ($settings as $key => $value) {
+            Configuration::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
+    }
     public function toggleLogging(Request $request)
     {
         $loggingConfig = Configuration::firstOrCreate(['key' => 'logging_enabled']);

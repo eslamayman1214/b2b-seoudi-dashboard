@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\TicketRequest;
+use App\Models\Configuration;
 use App\Models\Ticket;
 use App\Models\TicketPerformance;
 use App\Models\User;
@@ -344,13 +345,14 @@ class TicketService
 
     private function calculateSLADuration(TicketPerformance $performance)
     {
+        $slaLimit = Configuration::getValueByKey('sla_limit');
         if ($performance->assigned_date) {
             $assignedDate = Carbon::parse($performance->assigned_date);
             $endDate = $performance->resolved_date ? Carbon::parse($performance->resolved_date) : now();
 
             $duration = $endDate->diffInHours($assignedDate);
             $performance->sla_duration = $duration;
-            $performance->sla_status = $duration > 24 ? 'out_sla' : 'in_sla';
+            $performance->sla_status = $duration > $slaLimit ? 'out_sla' : 'in_sla';
         } else {
             $performance->sla_duration = null;
             $performance->sla_status = null;

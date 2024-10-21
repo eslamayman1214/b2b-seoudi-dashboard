@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('settings.index');
         Route::post('saveSettings', [SettingController::class, 'saveSettings'])->name('settings.saveSettings');
         Route::post('toggleLogging', [SettingController::class, 'toggleLogging'])->name('settings.toggleLogging');
+        Route::post('sla-limit', [SettingController::class, 'saveSlaLimit'])->name('settings.saveSlaLimit');
         Route::post('fetch-customer-groups', [ProductController::class, 'fetchCustomerGroups'])->name('settings.fetchCustomerGroups');
         Route::post('fetch-products', [ApiProductController::class, 'sendProductDataToApi'])->name('settings.fetchProducts');
 
