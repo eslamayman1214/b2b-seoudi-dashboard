@@ -47,6 +47,11 @@
                                 class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md shadow-md flex items-center">
                                 <i class="fas fa-plus mr-2"></i> Add Ticket
                             </a>
+                            <!-- Show SLA Tickets Button -->
+                            <a href="{{ route('tickets.sla') }}"
+                                class="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md shadow-md flex items-center">
+                                <i class="fas fa-clock mr-2"></i> SLA Tickets
+                            </a>
                         @endif
                     </div>
                 </div>
@@ -72,7 +77,7 @@
                             @foreach ($tickets as $ticket)
                                 <tr>
                                     <td class="border px-4 py-2">{{ $ticket->id }}</td>
-                                    <td class="border px-4 py-2">{{ $ticket->department }}</td>
+                                    <td class="border px-4 py-2">{{ $ticket->section }}</td>
                                     <td class="border px-4 py-2">{{ $ticket->email }}</td>
                                     <td class="border px-4 py-2">
                                         <select class="border rounded-md" name="status" id="status_{{ $ticket->id }}">

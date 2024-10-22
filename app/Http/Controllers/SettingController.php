@@ -26,6 +26,12 @@ class SettingController extends Controller
         $this->settingService->saveSettings($request);
         return redirect()->route('settings.index')->with('success', 'Settings updated successfully.');
     }
+    public function saveSlaLimit(Request $request, SettingService $settingService)
+    {
+        $settingService->saveSlaLimit($request);
+
+        return redirect()->back()->with('success', 'SLA limit saved successfully!');
+    }
 
     public function toggleLogging(Request $request)
     {

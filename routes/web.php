@@ -27,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
         Route::put('{id}', [ProductController::class, 'update'])->name('products.update');
         Route::post('upload-tiers', [ProductController::class, 'uploadTiers'])->name('tiers.upload');
+        Route::post('store', [ProductController::class, 'store'])->name('products.store');
 
     });
 
@@ -46,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('settings.index');
         Route::post('saveSettings', [SettingController::class, 'saveSettings'])->name('settings.saveSettings');
         Route::post('toggleLogging', [SettingController::class, 'toggleLogging'])->name('settings.toggleLogging');
+        Route::post('sla-limit', [SettingController::class, 'saveSlaLimit'])->name('settings.saveSlaLimit');
         Route::post('fetch-customer-groups', [ProductController::class, 'fetchCustomerGroups'])->name('settings.fetchCustomerGroups');
         Route::post('fetch-products', [ApiProductController::class, 'sendProductDataToApi'])->name('settings.fetchProducts');
 
@@ -55,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [TicketController::class, 'index'])->name('tickets.index');
         Route::get('create', [TicketController::class, 'create'])->name('tickets.create');
         Route::post('/', [TicketController::class, 'store'])->name('tickets.store');
+        Route::get('tickets-sla', [TicketController::class, 'showSlaTickets'])->name('tickets.sla');
         Route::get('{ticket}', [TicketController::class, 'show'])->name('tickets.show');
         Route::put('{ticket}', [TicketController::class, 'update'])->name('tickets.update');
         Route::post('update/{ticket}', [TicketController::class, 'update_index']);

@@ -21,6 +21,11 @@
                             <p>{{ session('success') }}</p>
                         </div>
                     @endif
+                    @if (session('info'))
+                        <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6" role="alert">
+                            <p>{{ session('info') }}</p>
+                        </div>
+                    @endif
                     @if (session('fail'))
                         <div class="mt-4 p-4 bg-red-100 text-red-700 rounded-md mb-6">
                             {{ session('fail') }}
@@ -230,12 +235,22 @@
                         const lastTier = tiers[index - 1];
                         const minQuantity = parseInt(lastTier.querySelector('input[name*="[min_quantity]"]').value);
                         const maxQuantity = parseInt(lastTier.querySelector('input[name*="[max_quantity]"]').value);
+                        const value = parseInt(lastTier.querySelector('input[name*="[value]"]').value);
                         const priceType = lastTier.querySelector('select[name*="[price_type]"]').value;
 
                         if (priceType === 'range' && (!maxQuantity || maxQuantity <= minQuantity)) {
                             Swal.fire({
                                 title: 'Invalid Quantity Range',
                                 text: `Please set a valid max quantity for the last tier before adding a new one.`,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+                        if (isNaN(value) || value <= 0) {
+                            Swal.fire({
+                                title: 'Invalid Value',
+                                text: 'Please enter a postive number for the value.',
                                 icon: 'error',
                                 confirmButtonText: 'OK'
                             });
@@ -254,7 +269,7 @@
                         }
                     }
 
-                    const tierName = `${customerGroup}_tier${index + 1}`;
+                    const tierName = `${customerGroup}_TIER${index + 1}`;
                     const newTier = `
     <div class="tier grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end mb-4 pb-4 border-b border-gray-200" data-tier-id="">
         <input type="hidden" name="tiers[${customerGroup}][${index}][id]" value="">
@@ -272,7 +287,7 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Min Quantity') }}</label>
-            <input type="number" name="tiers[${customerGroup}][${index}][min_quantity]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" value="${previousMaxQuantity}" required readonly>
+            <input type="number" name="tiers[${customerGroup}][${index}][min_quantity]" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" value="${previousMaxQuantity}" required ${previousMaxQuantity === 1 ? '' : 'readonly'}>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Max Quantity') }}</label>
@@ -425,7 +440,7 @@
                         });
 
                         const tierNameInput = tier.querySelector('input[name*="[tier_name]"]');
-                        tierNameInput.value = `${customerGroup}_tier${index + 1}`;
+                        tierNameInput.value = `${customerGroup}_TIER${index + 1}`;
 
                         const priceTypeSelect = tier.querySelector('.price-type-select');
                         priceTypeSelect.setAttribute('data-index', index);

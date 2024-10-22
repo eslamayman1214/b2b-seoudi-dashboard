@@ -35,11 +35,11 @@
                         placeholder="Enter ticket description" readonly>{{ old('description', $ticket->description) }}</textarea>
                 </div>
 
-                <!-- Department -->
+                <!-- Section -->
                 <div class="mb-4">
-                    <label for="department" class="block text-gray-700">Section</label>
-                    <input type="text" id="department" name="department" class="w-full px-3 py-2 border rounded-md"
-                        value="{{ old('department', $ticket->department) }}" readonly>
+                    <label for="section" class="block text-gray-700">Section</label>
+                    <input type="text" id="section" name="section" class="w-full px-3 py-2 border rounded-md"
+                        value="{{ old('section', $ticket->section) }}" readonly>
                 </div>
 
                 <!-- Email -->
@@ -91,10 +91,10 @@
                     @endif
 
                     <!--
-                                     @if (Auth::user()->role != 'user')
+                                                     @if (Auth::user()->role != 'user')
     <input type="file" id="attachment" name="attachment" class="mt-2">
     @endif
-                                -->
+                                                -->
 
                     <!-- Action Buttons -->
                     <div class="flex justify-start gap-2 mt-4">

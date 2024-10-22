@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductVersion;
 use App\Models\Tier;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ProductService
 {
@@ -39,6 +40,11 @@ class ProductService
             }
 
             if (isset($row[0]) && isset($row[1]) && isset($row[2]) && isset($row[3])) {
+
+                // Validate that price and stock are numeric
+                if (!is_numeric($row[2]) || !is_numeric($row[3])) {
+                    throw new \Exception("Row $index: Price and Stock must be valid numbers.");
+                }
                 $existingProduct = Product::where('sku', $row[1])->orWhere('item_code', $row[0])->first();
 
                 if ($existingProduct) {
@@ -191,23 +197,36 @@ class ProductService
 
     public function uploadTiers($data)
     {
-        foreach ($data as $index => $row) {
-            if ($index === 0) {
-                continue; // Skip header row
-            }
-
-            // Ensure SKU and tier-related fields are set
-            if (isset($row[0]) && isset($row[1]) && isset($row[4]) && isset($row[5]) && isset($row[6]) && isset($row[7])) {
-                // Find product by SKU
-                $existingProduct = Product::where('sku', $row[0])->first();
-
-                if ($existingProduct) {
-                    $productId = $existingProduct->id;
-                } else {
-                    throw new \Exception('Product with SKU ' . $row[0] . ' not found.');
+        DB::beginTransaction();
+        try {
+            foreach ($data as $index => $row) {
+                if ($index === 0) {
+                    continue; // Skip header row
                 }
 
-                // Validate tier data using the moved validateTier function
+                // Ensure SKU and tier-related fields are set
+                if (!isset($row[0], $row[1], $row[4], $row[5], $row[6], $row[7])) {
+                    throw new \Exception("Invalid CSV format at row " . ($index + 1));
+                }
+
+                // Find product by SKU
+                $existingProduct = Product::where('sku', $row[0])->first();
+                if (!$existingProduct) {
+                    throw new \Exception('Product with SKU ' . $row[0] . ' not found at row ' . ($index + 1));
+                }
+
+                $productId = $existingProduct->id;
+
+                $existingTier = Tier::where('product_id', $productId)
+                    ->where('tier_name', $row[1])
+                    ->where('customer_group', $row[6])
+                    ->first();
+                if ($existingTier) {
+                    // Update the existing tier
+                    throw new \Exception('this tier with name' . $row[1] . 'already exist in product with SKU: ' . $row[0]);
+                }
+
+                // Prepare tier data
                 $tierData = [
                     'tier_name' => $row[1],
                     'min_quantity' => $row[2],
@@ -218,57 +237,40 @@ class ProductService
                     'type' => $row[7],
                 ];
 
-                $this->validateTier($tierData);
+                // Validate tier data
+                $validatedTierData = $this->validateTier($tierData, $productId, $existingProduct->tiers);
+                // Create a new tier
+                $existingProduct->tiers()->create($validatedTierData);
 
-                // Find or create a tier for the product
-                $existingTier = Tier::where('product_id', $productId)
-                    ->where('tier_name', $row[1])
-                    ->first();
-
-                if ($existingTier) {
-                    // Update the existing tier
-                    $existingTier->update($tierData);
-                } else {
-                    // Create a new tier
-                    $newTier = $existingProduct->tiers()->create($tierData);
-                }
-
-                // Update the Product table to include the new tiers
-                $tiers = $existingProduct->tiers; // Fetch updated tiers
-                $existingProduct->update([
-                    'tiers' => $tiers, // This assumes the product model has a relationship with tiers
-                ]);
+                // Refresh the product to get the updated tiers
+                $existingProduct->refresh();
 
                 // Update or create ProductVersion
                 $existingProductVersion = ProductVersion::where('product_id', $productId)->first();
+                $versionData = [
+                    'sku' => $existingProduct->sku,
+                    'price' => $existingProduct->price,
+                    'stock' => $existingProduct->stock,
+                    'item_code' => $existingProduct->item_code,
+                    'tiers' => $existingProduct->tiers,
+                ];
 
                 if ($existingProductVersion) {
-                    // Update the existing ProductVersion record
-                    $existingProductVersion->update([
-                        'sku' => $existingProduct->sku,
-                        'price' => $existingProduct->price,
-                        'stock' => $existingProduct->stock,
-                        'item_code' => $existingProduct->item_code,
-                        'tiers' => $tiers,
-                    ]);
+                    $existingProductVersion->update($versionData);
                 } else {
-                    // Create a new ProductVersion record
-                    ProductVersion::create([
-                        'product_id' => $productId,
-                        'sku' => $existingProduct->sku,
-                        'price' => $existingProduct->price,
-                        'stock' => $existingProduct->stock,
-                        'item_code' => $existingProduct->item_code,
-                        'tiers' => $tiers,
-                    ]);
+                    ProductVersion::create(array_merge(['product_id' => $productId], $versionData));
                 }
-            } else {
-                throw new \Exception('Invalid CSV format.');
             }
+
+            DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Error uploading tiers: ' . $e->getMessage());
         }
     }
 
-    public function validateTier(array $tierData)
+    public function validateTier(array $tierData, $productId, $existingTiers)
     {
         // Ensure 'price_type' is present and handle it case-insensitively
         if (!isset($tierData['price_type'])) {
@@ -295,15 +297,16 @@ class ProductService
         }
 
         // Get customer groups (assuming $customerGroups is an array)
-        $customerGroups = array_map('strtolower', CustomerGroup::pluck('code')->toArray()); // Convert all to lowercase
+        $customerGroups = array_map('strtoupper', CustomerGroup::pluck('code')->toArray()); // Convert all to lowercase
 
+        //  $tierData['customer_group'] = strtolower($tierData['customer_group']); // Convert to lowercase for storage
         // Ensure 'customer_group' is present
         if (!isset($tierData['customer_group'])) {
             throw new \Exception('Customer group is required.');
         }
 
         // Convert customer_group to lowercase for storage
-        $tierData['customer_group'] = strtolower($tierData['customer_group']);
+        $tierData['customer_group'] = strtoupper($tierData['customer_group']);
 
         // Check if customer_group exists in the allowed groups
         if (!in_array($tierData['customer_group'], $customerGroups)) {
@@ -317,11 +320,53 @@ class ProductService
             }
             $tierData['min_quantity'] = null;
             $tierData['max_quantity'] = null;
+
+            // Check if there's already a fixed tier for this product and customer group
+            $existingFixedTier = Tier::where('product_id', $productId)
+                ->where('customer_group', $tierData['customer_group'])
+                ->where('price_type', 'fixed')
+                ->first();
+
+            if ($existingFixedTier && (!isset($tierData['id']) || $tierData['id'] != $existingFixedTier->id)) {
+                throw new \Exception('Only one fixed tier is allowed per customer group for each product.');
+            }
         }
         // Handle 'range' price type
         elseif ($tierData['price_type'] === 'range') {
             if (!isset($tierData['min_quantity']) || !isset($tierData['max_quantity']) || $tierData['max_quantity'] <= $tierData['min_quantity']) {
                 throw new \Exception('Invalid range quantities. Max quantity must be greater than Min quantity.');
+            }
+
+            // Check for overlapping quantities
+            $overlappingTier = Tier::where('product_id', $productId)
+                ->where('customer_group', $tierData['customer_group'])
+                ->where('price_type', 'range')
+                ->where(function ($query) use ($tierData) {
+                    $query->whereBetween('min_quantity', [$tierData['min_quantity'], $tierData['max_quantity']])
+                        ->orWhereBetween('max_quantity', [$tierData['min_quantity'], $tierData['max_quantity']])
+                        ->orWhere(function ($q) use ($tierData) {
+                            $q->where('min_quantity', '<=', $tierData['min_quantity'])
+                                ->where('max_quantity', '>=', $tierData['max_quantity']);
+                        });
+                })
+                ->where('id', '!=', $tierData['id'] ?? null)
+                ->first();
+
+            if ($overlappingTier) {
+                throw new \Exception('Overlapping quantities detected with existing tiers.');
+            }
+
+            // Ensure continuity of ranges
+            if ($existingTiers) {
+                $previousTier = $existingTiers->where('customer_group', $tierData['customer_group'])
+                    ->where('price_type', 'range')
+                    ->where('max_quantity', '<', $tierData['min_quantity'])
+                    ->sortByDesc('max_quantity')
+                    ->first();
+
+                if ($previousTier && $previousTier->max_quantity + 1 != $tierData['min_quantity']) {
+                    throw new \Exception('Tier ranges must be continuous. Expected min_quantity: ' . ($previousTier->max_quantity + 1));
+                }
             }
         }
 
@@ -329,6 +374,8 @@ class ProductService
         if (!isset($tierData['value']) || $tierData['value'] <= 0) {
             throw new \Exception('Invalid value. Value must be greater than zero.');
         }
+
+        return $tierData;
     }
 
 }

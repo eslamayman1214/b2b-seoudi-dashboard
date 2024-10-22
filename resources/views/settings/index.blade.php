@@ -38,6 +38,28 @@
                 </fieldset>
             </form>
 
+            <!-- SLA Limit Form -->
+            <form action="{{ route('settings.saveSlaLimit') }}" method="POST" class="mb-4" id="sla-limit-form">
+                @csrf
+                <fieldset class="border border-gray-300 rounded p-4">
+                    <legend class="text-lg font-medium">SLA Limit</legend>
+                    <div class="mt-4">
+                        <label for="sla-limit" class="block text-gray-700">SLA Limit (Hours)</label>
+                        <input type="number" name="sla_limit" id="sla-limit" value="{{ $slaLimit }}"
+                            class="form-input mt-1 block w-full" min="1">
+                        <p class="text-sm text-gray-500">Enter the SLA limit in hours (must be an integer greater than or
+                            equal 1).
+                        </p>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded"
+                            id="save-button-sla" disabled>
+                            Save SLA Limit
+                        </button>
+                    </div>
+                </fieldset>
+            </form>
+
             <!-- API Settings Form -->
             <form action="{{ route('settings.saveSettings') }}" method="POST" class="mb-4" id="api-settings-form">
                 @csrf
@@ -129,6 +151,24 @@
                 });
 
                 updateButtonStateLogging(); // Initialize the button state
+
+                // SLA Limit Form Validation
+                const slaInput = document.getElementById('sla-limit');
+                const saveButtonSla = document.getElementById('save-button-sla');
+                let originalSlaValue = "{{ $slaLimit }}";
+
+                const validateSlaInput = () => {
+                    const slaValue = slaInput.value;
+                    const isValid = /^\d+$/.test(slaValue) && parseInt(slaValue) >= 1;
+                    saveButtonSla.disabled = !isValid || slaValue === originalSlaValue;
+                    saveButtonSla.classList.toggle('bg-blue-500', isValid && slaValue !== originalSlaValue);
+                    saveButtonSla.classList.toggle('hover:bg-blue-700', isValid && slaValue !== originalSlaValue);
+                    saveButtonSla.classList.toggle('bg-gray-500', !isValid || slaValue === originalSlaValue);
+                    saveButtonSla.classList.toggle('hover:bg-gray-700', !isValid || slaValue === originalSlaValue);
+                };
+
+                slaInput.addEventListener('input', validateSlaInput);
+                validateSlaInput(); // Initialize the button state
 
                 // API Save Button Logic and Field Constraints
                 const saveButtonApi = document.getElementById('save-button-api');

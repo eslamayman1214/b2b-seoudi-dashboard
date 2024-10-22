@@ -22,10 +22,10 @@ class TicketRequest extends FormRequest
     {
         return [
             'description' => 'required|string|min:2|max:1000',
-            'department' => 'required|string|max:255',
+            'section' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'status' => 'in:pending,in progress,resolved',
+            'status' => 'in:pending,in progress,resolved,re-open',
             'assigned' => 'nullable|exists:users,id',
         ];
     }
