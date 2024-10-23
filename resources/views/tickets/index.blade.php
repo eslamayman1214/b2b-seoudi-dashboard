@@ -184,6 +184,14 @@
                                 timer: 1500, // Auto close after 1.5 seconds
                                 showConfirmButton: false
                             });
+                        } else if (data.message === 'No changes detected') {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'No Changes',
+                                text: 'No changes detected in the ticket.',
+                                timer: 1500, // Auto close after 1.5 seconds
+                                showConfirmButton: false
+                            });
                         } else {
                             Swal.fire({
                                 icon: 'error',

@@ -131,6 +131,12 @@ class TicketService
             $oldStatus = $ticket->status;
             $oldAssigned = $ticket->assigned;
 
+            // Check if no changes were made
+            if ($oldStatus == $request->input('status') && $oldAssigned == $request->input('assigned')) {
+                return response()->json(['success' => false, 'message' => 'No changes detected'], 200);
+            }
+
+            // Update only if the user is admin or super admin
             if ($user->role === 'admin' || $user->role === 'super admin') {
                 $ticket->assigned = $request->input('assigned');
             }
