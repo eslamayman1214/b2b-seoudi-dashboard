@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\TicketRequest;
+use App\Mail\TicketResolved;
 use App\Models\Configuration;
 use App\Models\Ticket;
 use App\Models\TicketPerformance;
@@ -12,6 +13,7 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class TicketService
 {
@@ -109,6 +111,10 @@ class TicketService
 
             $ticket->save();
 
+            if ($ticket->status === 'resolved' && $oldStatus !== 'resolved') {
+                Mail::to($ticket->email)->send(new TicketResolved($ticket));
+            }
+
             // Update TicketPerformance record
             $this->updateTicketPerformance($ticket, $oldStatus, $oldAssigned);
 
@@ -143,6 +149,10 @@ class TicketService
             $ticket->status = $request->input('status');
 
             $ticket->save();
+
+            if ($ticket->status === 'resolved' && $oldStatus !== 'resolved') {
+                Mail::to($ticket->email)->send(new TicketResolved($ticket));
+            }
 
             // Update TicketPerformance record
             $this->updateTicketPerformance($ticket, $oldStatus, $oldAssigned);
