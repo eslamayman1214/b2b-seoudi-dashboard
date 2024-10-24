@@ -1,4 +1,5 @@
 <x-layout>
+    @section('title', 'Ticket SLA')
     @section('content')
         <div class="container mx-auto px-4 py-8">
             <!-- Filter and Search Bar -->
@@ -89,11 +90,16 @@
                                         {{ $ticket->assigned_date ?? $ticket->ticket_created_date }}
                                     </td>
                                     <td class="border px-4 py-2">{{ $ticket->resolved_date ?: 'Not Solved' }}</td>
+                                    <!-- SLA Status: Show 'N/A' if user_name is null -->
                                     <td class="border px-4 py-2">
-                                        @if ($ticket->sla_status == 'in_sla')
-                                            <span class="text-green-500">In SLA</span>
+                                        @if (is_null($ticket->user_name) || is_null($ticket->resolved_date))
+                                            <span class="text-gray-500">N/A</span>
                                         @else
-                                            <span class="text-red-500">Out of SLA</span>
+                                            @if ($ticket->sla_status == 'in_sla')
+                                                <span class="text-green-500">In SLA</span>
+                                            @else
+                                                <span class="text-red-500">Out of SLA</span>
+                                            @endif
                                         @endif
                                     </td>
                                 </tr>

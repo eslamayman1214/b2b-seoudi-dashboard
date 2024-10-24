@@ -66,8 +66,6 @@
                         <label for="status" class="block text-gray-700">Status</label>
                         <select id="status" name="status" class="w-full px-3 py-2 border rounded-md">
                             <option value="pending" selected>Pending</option>
-                            <option value="in progress">In Progress</option>
-                            <option value="resolved">Resolved</option>
                         </select>
                     </div>
 

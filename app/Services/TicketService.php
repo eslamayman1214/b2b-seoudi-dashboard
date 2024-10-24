@@ -39,14 +39,18 @@ class TicketService
                 $ticketsQuery->where('assigned', $filterAssigned);
             }
 
+            // Fetch tickets and recalculate SLA for each
             $tickets = $ticketsQuery->paginate($perPage);
+            foreach ($tickets as $ticket) {
+                $this->recalculateSLA($ticket);
+            }
+
             $users = User::where('role', 'user')->pluck('name', 'id');
 
             return view('tickets.index', compact('tickets', 'users', 'filterStatus', 'filterAssigned', 'perPage'));
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Failed to load tickets: ' . $e->getMessage());
         }
-
     }
 
     public function loadCreatePage()
@@ -362,16 +366,38 @@ class TicketService
     private function calculateSLADuration(TicketPerformance $performance)
     {
         $slaLimit = Configuration::getValueByKey('sla_limit');
+
         if ($performance->assigned_date) {
             $assignedDate = Carbon::parse($performance->assigned_date);
+            // Use current time if the ticket is not resolved
             $endDate = $performance->resolved_date ? Carbon::parse($performance->resolved_date) : now();
 
+            // Calculate SLA based on assigned date and end date
             $duration = $endDate->diffInHours($assignedDate);
-            $performance->sla_duration = $duration;
-            $performance->sla_status = $duration > $slaLimit ? 'out_sla' : 'in_sla';
+            $performance->sla_duration = abs($duration);
+
+            if ($slaLimit < abs($duration)) {
+                $performance->sla_status = 'out_sla';
+            } else {
+                $performance->sla_status = 'in_sla';
+            }
+
         } else {
             $performance->sla_duration = null;
             $performance->sla_status = null;
         }
     }
+
+    private function recalculateSLA(Ticket $ticket)
+    {
+        $performance = TicketPerformance::where('ticket_id', $ticket->id)
+            ->whereNull('resolved_date')
+            ->latest()
+            ->first();
+
+        if ($performance) {
+            $this->calculateSLADuration($performance);
+        }
+    }
+
 }
