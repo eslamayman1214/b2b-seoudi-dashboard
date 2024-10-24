@@ -89,33 +89,56 @@
                     @else
                         <p class="text-gray-600">No attachment provided.</p>
                     @endif
+                </div>
 
-                    <!--
-                                                     @if (Auth::user()->role != 'user')
-    <input type="file" id="attachment" name="attachment" class="mt-2">
-    @endif
-                                                -->
+                <!-- Action Buttons -->
+                <div class="flex justify-start gap-2 mt-4">
+                    <!-- Update Button -->
+                    <button id="update-button" type="button" onclick="updateTicket({{ $ticket->id }})"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md cursor-not-allowed opacity-50" disabled>
+                        @if (Auth::user()->role == 'user')
+                            Update Status
+                        @else
+                            Update Ticket
+                        @endif
+                    </button>
 
-                    <!-- Action Buttons -->
-                    <div class="flex justify-start gap-2 mt-4">
-                        <!-- Update Button -->
-                        <button type="button" onclick="updateTicket({{ $ticket->id }})"
-                            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md">
-                            @if (Auth::user()->role == 'user')
-                                Update Status
-                            @else
-                                Update Ticket
-                            @endif
-                        </button>
-
-                        <!-- Back Button -->
-                        <a href="{{ route('tickets.index') }}"
-                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md">Back</a>
-                    </div>
+                    <!-- Back Button -->
+                    <a href="{{ route('tickets.index') }}"
+                        class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md">Back</a>
+                </div>
             </form>
         </div>
 
         <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const updateButton = document.getElementById('update-button');
+                const initialStatus = '{{ $ticket->status }}';
+                const initialAssigned = '{{ $ticket->assigned }}';
+
+                // Add event listeners for status and assigned fields
+                document.getElementById('status').addEventListener('change', checkForChanges);
+                document.getElementById('assigned').addEventListener('change', checkForChanges);
+
+                // Function to check if any changes were made to the fields
+                function checkForChanges() {
+                    const currentStatus = document.getElementById('status').value;
+                    const currentAssigned = document.getElementById('assigned').value;
+
+                    if (currentStatus !== initialStatus || currentAssigned !== initialAssigned) {
+                        // Enable the button if there are changes
+                        updateButton.disabled = false;
+                        updateButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                        updateButton.classList.add('hover:bg-blue-600');
+                    } else {
+                        // Keep the button disabled if there are no changes
+                        updateButton.disabled = true;
+                        updateButton.classList.add('opacity-50', 'cursor-not-allowed');
+                        updateButton.classList.remove('hover:bg-blue-600');
+                    }
+                }
+            });
+
             function updateTicket(ticketId) {
                 var formData = new FormData(document.getElementById('ticket-form'));
 

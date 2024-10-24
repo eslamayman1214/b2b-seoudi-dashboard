@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\TicketRequest;
+use App\Mail\TicketResolved;
 use App\Models\Configuration;
 use App\Models\Ticket;
 use App\Models\TicketPerformance;
@@ -12,6 +13,7 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class TicketService
 {
@@ -37,14 +39,18 @@ class TicketService
                 $ticketsQuery->where('assigned', $filterAssigned);
             }
 
+            // Fetch tickets and recalculate SLA for each
             $tickets = $ticketsQuery->paginate($perPage);
+            foreach ($tickets as $ticket) {
+                $this->recalculateSLA($ticket);
+            }
+
             $users = User::where('role', 'user')->pluck('name', 'id');
 
             return view('tickets.index', compact('tickets', 'users', 'filterStatus', 'filterAssigned', 'perPage'));
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Failed to load tickets: ' . $e->getMessage());
         }
-
     }
 
     public function loadCreatePage()
@@ -109,6 +115,10 @@ class TicketService
 
             $ticket->save();
 
+            if ($ticket->status === 'resolved' && $oldStatus !== 'resolved') {
+                Mail::to($ticket->email)->send(new TicketResolved($ticket));
+            }
+
             // Update TicketPerformance record
             $this->updateTicketPerformance($ticket, $oldStatus, $oldAssigned);
 
@@ -131,12 +141,22 @@ class TicketService
             $oldStatus = $ticket->status;
             $oldAssigned = $ticket->assigned;
 
+            // Check if no changes were made
+            if ($oldStatus == $request->input('status') && $oldAssigned == $request->input('assigned')) {
+                return response()->json(['success' => false, 'message' => 'No changes detected'], 200);
+            }
+
+            // Update only if the user is admin or super admin
             if ($user->role === 'admin' || $user->role === 'super admin') {
                 $ticket->assigned = $request->input('assigned');
             }
             $ticket->status = $request->input('status');
 
             $ticket->save();
+
+            if ($ticket->status === 'resolved' && $oldStatus !== 'resolved') {
+                Mail::to($ticket->email)->send(new TicketResolved($ticket));
+            }
 
             // Update TicketPerformance record
             $this->updateTicketPerformance($ticket, $oldStatus, $oldAssigned);
@@ -346,16 +366,38 @@ class TicketService
     private function calculateSLADuration(TicketPerformance $performance)
     {
         $slaLimit = Configuration::getValueByKey('sla_limit');
+
         if ($performance->assigned_date) {
             $assignedDate = Carbon::parse($performance->assigned_date);
+            // Use current time if the ticket is not resolved
             $endDate = $performance->resolved_date ? Carbon::parse($performance->resolved_date) : now();
 
+            // Calculate SLA based on assigned date and end date
             $duration = $endDate->diffInHours($assignedDate);
-            $performance->sla_duration = $duration;
-            $performance->sla_status = $duration > $slaLimit ? 'out_sla' : 'in_sla';
+            $performance->sla_duration = abs($duration);
+
+            if ($slaLimit < abs($duration)) {
+                $performance->sla_status = 'out_sla';
+            } else {
+                $performance->sla_status = 'in_sla';
+            }
+
         } else {
             $performance->sla_duration = null;
             $performance->sla_status = null;
         }
     }
+
+    private function recalculateSLA(Ticket $ticket)
+    {
+        $performance = TicketPerformance::where('ticket_id', $ticket->id)
+            ->whereNull('resolved_date')
+            ->latest()
+            ->first();
+
+        if ($performance) {
+            $this->calculateSLADuration($performance);
+        }
+    }
+
 }
