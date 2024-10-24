@@ -16,6 +16,10 @@ class ConfigurationSeeder extends Seeder
             'key' => 'logging_enabled',
             'value' => '1',
         ]);
+        Configuration::create([
+            'key' => 'sla_limit',
+            'value' => '1',
+        ]);
 
     }
 }
