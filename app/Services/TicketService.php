@@ -88,7 +88,7 @@ class TicketService
             $ticket->save();
 
             // Send email notification if ticket is assigned during creation
-            if ($ticket->assigned) {
+            if ($ticket->status === 'pending' && $ticket->assigned) {
                 $assignedUser = User::find($ticket->assigned);
                 if ($assignedUser) {
                     Mail::to($assignedUser->email)->send(new TicketAssigned($ticket, $assignedUser));
@@ -127,7 +127,7 @@ class TicketService
             if ($ticket->status === 'resolved' && $oldStatus !== 'resolved') {
                 Mail::to($ticket->email)->send(new TicketResolved($ticket));
             }
-            if ($ticket->assigned) {
+            if ($ticket->status === 'pending' && $ticket->assigned) {
                 $assignedUser = User::find($ticket->assigned);
                 if ($assignedUser) {
                     Mail::to($assignedUser->email)->send(new TicketAssigned($ticket, $assignedUser));
@@ -173,7 +173,7 @@ class TicketService
                 Mail::to($ticket->email)->send(new TicketResolved($ticket));
             }
             // Handle assignment notification
-            if ($ticket->assigned) {
+            if ($ticket->status === 'pending' && $ticket->assigned) {
                 $assignedUser = User::find($ticket->assigned);
                 if ($assignedUser) {
                     Mail::to($assignedUser->email)->send(new TicketAssigned($ticket, $assignedUser));
