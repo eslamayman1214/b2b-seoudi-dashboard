@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ProductController as ApiProductController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProductController;
@@ -30,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('store', [ProductController::class, 'store'])->name('products.store');
 
     });
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
 
     Route::get('invite', [InviteController::class, 'create'])->name('invite.create');
     Route::post('invite', [InviteController::class, 'send'])->name('invite.send');

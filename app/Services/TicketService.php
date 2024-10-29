@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Requests\TicketRequest;
+use App\Mail\TicketAssigned;
 use App\Mail\TicketResolved;
 use App\Models\Configuration;
 use App\Models\Ticket;
@@ -86,6 +87,14 @@ class TicketService
 
             $ticket->save();
 
+            // Send email notification if ticket is assigned during creation
+            if ($ticket->assigned) {
+                $assignedUser = User::find($ticket->assigned);
+                if ($assignedUser) {
+                    Mail::to($assignedUser->email)->send(new TicketAssigned($ticket, $assignedUser));
+                }
+            }
+
             // Create initial TicketPerformance record
             $this->createTicketPerformance($ticket);
 
@@ -117,6 +126,12 @@ class TicketService
 
             if ($ticket->status === 'resolved' && $oldStatus !== 'resolved') {
                 Mail::to($ticket->email)->send(new TicketResolved($ticket));
+            }
+            if ($ticket->assigned) {
+                $assignedUser = User::find($ticket->assigned);
+                if ($assignedUser) {
+                    Mail::to($assignedUser->email)->send(new TicketAssigned($ticket, $assignedUser));
+                }
             }
 
             // Update TicketPerformance record
@@ -156,6 +171,13 @@ class TicketService
 
             if ($ticket->status === 'resolved' && $oldStatus !== 'resolved') {
                 Mail::to($ticket->email)->send(new TicketResolved($ticket));
+            }
+            // Handle assignment notification
+            if ($ticket->assigned) {
+                $assignedUser = User::find($ticket->assigned);
+                if ($assignedUser) {
+                    Mail::to($assignedUser->email)->send(new TicketAssigned($ticket, $assignedUser));
+                }
             }
 
             // Update TicketPerformance record
@@ -399,5 +421,4 @@ class TicketService
             $this->calculateSLADuration($performance);
         }
     }
-
 }
