@@ -6,6 +6,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TierController;
@@ -65,6 +66,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('update/{ticket}', [TicketController::class, 'update_index']);
         Route::get('{ticket}/download', [TicketController::class, 'downloadAttachment'])->name('tickets.downloadAttachment');
         Route::delete('{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
+    });
+    Route::prefix('quotations')->name('quotations.')->group(function () {
+        Route::get('/', [QuotationController::class, 'index'])->name('index');
+        Route::get('/reply/{id}', [QuotationController::class, 'reply'])->name('reply');
+        Route::post('/send-reply/{id}', [QuotationController::class, 'sendReply'])->name('sendReply');
     });
 
     Route::delete('/tiers/{id}', [TierController::class, 'destroy'])->name('tiers.destroy');
