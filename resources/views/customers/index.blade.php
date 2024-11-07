@@ -2,70 +2,198 @@
     @section('title', 'Customer List')
     @section('content')
         <div class="container mx-auto px-4 py-8">
-            <h1 class="text-2xl font-bold mb-4">Customers List</h1>
+            <h1 class="text-2xl font-bold mb-6">Customers List</h1>
+
+            <!-- Filters -->
+            <form method="GET" action="{{ route('customers.index') }}"
+                class="mb-4 flex items-center bg-gray-100 p-4 rounded-lg shadow-md">
+                <label for="document_status" class="mr-4 font-semibold text-lg">Document Status:</label>
+                <select name="document_status" id="document_status" class="mr-6 p-2 rounded-md border border-gray-300 text-lg">
+                    <option value="">All</option>
+                    @foreach ($statusOptions as $option)
+                        <option value="{{ $option['value'] }}"
+                            {{ request('document_status') == $option['value'] ? 'selected' : '' }}>
+                            {{ $option['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+                <button type="submit" class="bg-blue-500 text-white px-5 py-2 rounded-lg text-lg mr-4">Filter</button>
+                <a href="{{ route('customers.index') }}"
+                    class="bg-gray-500 text-white px-5 py-2 rounded-lg text-lg">Reset</a>
+            </form>
 
             <!-- Customers Table -->
-            <div class="overflow-x-auto">
-                <table class="table-auto w-full border-collapse border border-gray-300">
+            <div class="overflow-x-auto shadow rounded-lg border border-gray-300">
+                <table class="table-auto w-full border-collapse">
                     <thead>
-                        <tr>
-                            <th class="py-2 px-4 border border-gray-300">ID</th>
-                            <th class="py-2 px-4 border border-gray-300">Name</th>
-                            <th class="py-2 px-4 border border-gray-300">Email</th>
-                            <th class="py-2 px-4 border border-gray-300">Phone Number</th>
-                            <th class="py-2 px-4 border border-gray-300">WhatsApp Number</th>
-                            <th class="py-2 px-4 border border-gray-300">Group</th>
-                            <th class="py-2 px-4 border border-gray-300">Document</th>
-                            <th class="py-2 px-4 border border-gray-300">Document Status</th>
+                        <tr class="bg-gray-200">
+                            <th class="py-3 px-4 border border-gray-300">ID</th>
+                            <th class="py-3 px-4 border border-gray-300">Name</th>
+                            <th class="py-3 px-4 border border-gray-300">Email</th>
+                            <th class="py-3 px-4 border border-gray-300">Phone Number</th>
+                            <th class="py-3 px-4 border border-gray-300">Group</th>
+                            <th class="py-3 px-4 border border-gray-300">Document</th>
+                            <th class="py-3 px-4 border border-gray-300">Document Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($customers as $customer)
+                        @foreach ($customersPaginated as $customer)
                             <tr>
                                 <td class="border px-4 py-2">{{ $customer['id'] ?? '' }}</td>
                                 <td class="border px-4 py-2">{{ $customer['firstname'] ?? '' }}
                                     {{ $customer['lastname'] ?? '' }}</td>
                                 <td class="border px-4 py-2">{{ $customer['email'] ?? '' }}</td>
                                 <td class="border px-4 py-2">
-                                    @php
-                                        $phoneNumber =
-                                            collect($customer['custom_attributes'])->firstWhere(
-                                                'attribute_code',
-                                                'phone_number',
-                                            )['value'] ?? '';
-                                    @endphp
-                                    {{ $phoneNumber }}
+                                    {{ collect($customer['custom_attributes'])->firstWhere('attribute_code', 'phone_number')['value'] ?? '' }}
                                 </td>
-                                <td class="border px-4 py-2">{{ $customer['whatsapp_number'] ?? '' }}</td>
                                 <td class="border px-4 py-2">{{ $customer['group_code'] }}</td>
-                                <td class="border px-4 py-2"> ' '</td>
                                 <td class="border px-4 py-2">
-                                    @php
-                                        // Define a mapping of document status codes to human-readable descriptions
-                                        $statusMapping = [
-                                            '212' => 'Pending',
-                                            '213' => 'Accepted',
-                                            '214' => 'Rejected',
-                                        ];
-
-                                        // Find the document status value in custom_attributes
-                                        $documentStatusCode =
-                                            collect($customer['custom_attributes'])->firstWhere(
-                                                'attribute_code',
-                                                'document_status',
-                                            )['value'] ?? '';
-
-                                        // Map the code to its description, or show the code if not found in the mapping
-                                        $documentStatus = $statusMapping[$documentStatusCode] ?? $documentStatusCode;
-
-                                    @endphp
-                                    {{ $documentStatus }}
+                                    <a href="{{ route('customers.downloadDocument', $customer['id']) }}"
+                                        class="text-blue-500" title="Download Document">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block"
+                                            viewBox="0 0 20 20" fill="currentColor">
+                                            <path
+                                                d="M12 5a1 1 0 00-1-1H9a1 1 0 00-1 1v5H5.586l4.707 4.707a1 1 0 001.414 0L16.414 10H13V5zM3 15a1 1 0 011-1h12a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-1z" />
+                                        </svg>
+                                    </a>
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <select name="document_status" id="document_status_{{ $customer['id'] }}"
+                                        class="p-2 rounded-md border border-gray-300 text-lg"
+                                        data-original-value="{{ collect($customer['custom_attributes'])->firstWhere('attribute_code', 'document_status')['value'] ?? '' }}"
+                                        onchange="enableSaveButton({{ $customer['id'] }})">
+                                        @foreach ($statusOptions as $option)
+                                            <option value="{{ $option['value'] }}"
+                                                {{ collect($customer['custom_attributes'])->firstWhere('attribute_code', 'document_status')['value'] == $option['value'] ? 'selected' : '' }}>
+                                                {{ $option['label'] }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <!-- Save Icon -->
+                                    <button id="save_icon_{{ $customer['id'] }}"
+                                        onclick="updateDocumentStatus({{ $customer['id'] }})"
+                                        class="ml-2 text-gray-400 cursor-not-allowed bg-gray-200 rounded-lg px-4 py-2 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-md"
+                                        title="Save Status" disabled>
+                                        Save
+                                    </button>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
+            <!-- Pagination Control at the Bottom -->
+            <div class="mt-6 flex items-center justify-between">
+                <!-- Items per Page -->
+                <div class="flex items-center">
+                    <label for="perPage" class="mr-4 font-semibold text-lg">Items per page:</label>
+                    <select name="perPage" id="perPage" class="p-2 rounded-md border border-gray-300 text-lg"
+                        onchange="changePerPage()">
+                        <option value="25" {{ request('perPage') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('perPage') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('perPage') == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                </div>
+
+                <!-- Pagination Links -->
+                <div>
+                    {{ $customersPaginated->appends(request()->except('page'))->links() }}
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            function changePerPage() {
+                const perPage = document.getElementById('perPage').value;
+                const url = new URL(window.location.href);
+                url.searchParams.set('perPage', perPage);
+                url.searchParams.delete('page'); // Reset to first page
+                window.location.href = url.href;
+            }
+
+            // Enable Save button only if the value is different from the original
+            function enableSaveButton(customerId) {
+                const selectElem = document.getElementById(`document_status_${customerId}`);
+                const saveButton = document.getElementById(`save_icon_${customerId}`);
+                const originalValue = selectElem.getAttribute('data-original-value');
+                const currentValue = selectElem.value;
+
+                if (currentValue !== originalValue) {
+                    saveButton.classList.remove('text-gray-400', 'cursor-not-allowed');
+                    saveButton.classList.add('text-blue-600', 'cursor-pointer');
+                    saveButton.disabled = false;
+                } else {
+                    saveButton.classList.add('text-gray-400', 'cursor-not-allowed');
+                    saveButton.classList.remove('text-blue-600', 'cursor-pointer');
+                    saveButton.disabled = true;
+                }
+            }
+
+            // Update Document Status with improved error handling and button reset
+            function updateDocumentStatus(customerId) {
+                const selectElem = document.getElementById(`document_status_${customerId}`);
+                const documentStatusId = selectElem.value;
+                const originalValue = selectElem.getAttribute('data-original-value');
+
+                fetch('{{ route('customers.updateDocumentStatus') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        },
+                        body: JSON.stringify({
+                            customerId: customerId,
+                            documentStatusId: documentStatusId
+                        }),
+                    })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false,
+                            });
+
+                            // Update the original value after a successful update
+                            selectElem.setAttribute('data-original-value', documentStatusId);
+                            resetSaveButton(customerId);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message,
+                            });
+
+                            // Revert the select element's value to the original value
+                            selectElem.value = originalValue;
+                            enableSaveButton(customerId);
+                        }
+                    })
+                    .catch((error) => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while updating document status',
+                        });
+
+                        // Revert the select element's value to the original value
+                        selectElem.value = originalValue;
+                        enableSaveButton(customerId);
+                    });
+            }
+
+            // Reset Save button to inactive state after successful update
+            function resetSaveButton(customerId) {
+                const saveButton = document.getElementById(`save_icon_${customerId}`);
+                saveButton.classList.add('text-gray-400', 'cursor-not-allowed');
+                saveButton.classList.remove('text-blue-600', 'cursor-pointer');
+                saveButton.disabled = true;
+            }
+        </script>
         </div>
     @endsection
 </x-layout>

@@ -33,6 +33,8 @@ Route::middleware(['auth'])->group(function () {
 
     });
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/{customerId}/download-document', [CustomerController::class, 'downloadDocument'])
+        ->name('customers.downloadDocument');
 
     Route::get('invite', [InviteController::class, 'create'])->name('invite.create');
     Route::post('invite', [InviteController::class, 'send'])->name('invite.send');
@@ -74,5 +76,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::delete('/tiers/{id}', [TierController::class, 'destroy'])->name('tiers.destroy');
+    Route::post('/customers/update-document-status', [CustomerController::class, 'updateDocumentStatus'])->name('customers.updateDocumentStatus');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });
