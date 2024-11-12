@@ -7,6 +7,7 @@ use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\QuotationController;
+use App\Http\Controllers\RejectionReasonController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TierController;
@@ -74,7 +75,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reply/{id}', [QuotationController::class, 'reply'])->name('reply');
         Route::post('/send-reply/{id}', [QuotationController::class, 'sendReply'])->name('sendReply');
     });
+    Route::prefix('rejection-reasons')->name('rejection_reasons.')->group(function () {
+        Route::get('/', [RejectionReasonController::class, 'index'])->name('index');
+        Route::post('/', [RejectionReasonController::class, 'store'])->name('store');
+        Route::delete('/{optionId}', [RejectionReasonController::class, 'destroy'])->name('destroy');
+    });
 
+    Route::get('/customers/{customerId}/rejection-reason', [CustomerController::class, 'showRejectionReason'])->name('customers.rejectionReason');
+    Route::post('/customers/rejection-reason/save', [CustomerController::class, 'saveRejectionReason'])->name('customers.saveRejectionReason');
     Route::delete('/tiers/{id}', [TierController::class, 'destroy'])->name('tiers.destroy');
     Route::post('/customers/update-document-status', [CustomerController::class, 'updateDocumentStatus'])->name('customers.updateDocumentStatus');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');

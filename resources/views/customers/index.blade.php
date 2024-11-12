@@ -5,22 +5,30 @@
             <h1 class="text-2xl font-bold mb-6">Customers List</h1>
 
             <!-- Filters -->
-            <form method="GET" action="{{ route('customers.index') }}"
-                class="mb-4 flex items-center bg-gray-100 p-4 rounded-lg shadow-md">
-                <label for="document_status" class="mr-4 font-semibold text-lg">Document Status:</label>
-                <select name="document_status" id="document_status" class="mr-6 p-2 rounded-md border border-gray-300 text-lg">
-                    <option value="">All</option>
-                    @foreach ($statusOptions as $option)
-                        <option value="{{ $option['value'] }}"
-                            {{ request('document_status') == $option['value'] ? 'selected' : '' }}>
-                            {{ $option['label'] }}
-                        </option>
-                    @endforeach
-                </select>
-                <button type="submit" class="bg-blue-500 text-white px-5 py-2 rounded-lg text-lg mr-4">Filter</button>
-                <a href="{{ route('customers.index') }}"
-                    class="bg-gray-500 text-white px-5 py-2 rounded-lg text-lg">Reset</a>
-            </form>
+            <div class="mb-4 flex items-center justify-between bg-gray-100 p-4 rounded-lg shadow-md">
+                <form method="GET" action="{{ route('customers.index') }}"
+                    class="mb-4 flex items-center bg-gray-100 p-4 rounded-lg shadow-md">
+                    <label for="document_status" class="mr-4 font-semibold text-lg">Document Status:</label>
+                    <select name="document_status" id="document_status"
+                        class="mr-6 p-2 rounded-md border border-gray-300 text-lg">
+                        <option value="">All</option>
+                        @foreach ($statusOptions['statusOptions'] as $option)
+                            <option value="{{ $option['value'] }}"
+                                {{ request('document_status') == $option['value'] ? 'selected' : '' }}>
+                                {{ $option['label'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="bg-blue-500 text-white px-5 py-2 rounded-lg text-lg mr-4">Filter</button>
+                    <a href="{{ route('customers.index') }}"
+                        class="bg-gray-500 text-white px-5 py-2 rounded-lg text-lg">Reset</a>
+                </form>
+                <!-- Rejection Reasons Button -->
+                <a href="{{ route('rejection_reasons.index') }}"
+                    class="bg-blue-500 text-white px-5 py-2 rounded-lg text-lg">
+                    Rejection Reasons
+                </a>
+            </div>
 
             <!-- Customers Table -->
             <div class="overflow-x-auto shadow rounded-lg border border-gray-300">
@@ -58,24 +66,26 @@
                                     </a>
                                 </td>
                                 <td class="border px-4 py-2">
-                                    <select name="document_status" id="document_status_{{ $customer['id'] }}"
-                                        class="p-2 rounded-md border border-gray-300 text-lg"
-                                        data-original-value="{{ collect($customer['custom_attributes'])->firstWhere('attribute_code', 'document_status')['value'] ?? '' }}"
-                                        onchange="enableSaveButton({{ $customer['id'] }})">
-                                        @foreach ($statusOptions as $option)
-                                            <option value="{{ $option['value'] }}"
-                                                {{ collect($customer['custom_attributes'])->firstWhere('attribute_code', 'document_status')['value'] == $option['value'] ? 'selected' : '' }}>
-                                                {{ $option['label'] }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <!-- Save Icon -->
-                                    <button id="save_icon_{{ $customer['id'] }}"
-                                        onclick="updateDocumentStatus({{ $customer['id'] }})"
-                                        class="ml-2 text-gray-400 cursor-not-allowed bg-gray-200 rounded-lg px-4 py-2 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-md"
-                                        title="Save Status" disabled>
-                                        Save
-                                    </button>
+                                    <div class="flex items-center">
+                                        <select name="document_status" id="document_status_{{ $customer['id'] }}"
+                                            class="p-2 rounded-md border border-gray-300 text-lg"
+                                            data-original-value="{{ collect($customer['custom_attributes'])->firstWhere('attribute_code', 'document_status')['value'] ?? '' }}"
+                                            onchange="enableSaveButton({{ $customer['id'] }})">
+                                            @foreach ($statusOptions['statusOptions'] as $option)
+                                                <option value="{{ $option['value'] }}"
+                                                    {{ collect($customer['custom_attributes'])->firstWhere('attribute_code', 'document_status')['value'] == $option['value'] ? 'selected' : '' }}>
+                                                    {{ $option['label'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <!-- Save Icon -->
+                                        <button id="save_icon_{{ $customer['id'] }}"
+                                            onclick="updateDocumentStatus({{ $customer['id'] }})"
+                                            class="ml-2 text-gray-400 cursor-not-allowed bg-gray-200 rounded-lg px-4 py-2 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-md"
+                                            title="Save Status" disabled>
+                                            Save
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -101,8 +111,7 @@
                 </div>
             </div>
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
         <script>
             function changePerPage() {
                 const perPage = document.getElementById('perPage').value;
@@ -130,11 +139,9 @@
                 }
             }
 
-            // Update Document Status with improved error handling and button reset
             function updateDocumentStatus(customerId) {
                 const selectElem = document.getElementById(`document_status_${customerId}`);
                 const documentStatusId = selectElem.value;
-                const originalValue = selectElem.getAttribute('data-original-value');
 
                 fetch('{{ route('customers.updateDocumentStatus') }}', {
                         method: 'POST',
@@ -147,9 +154,16 @@
                             documentStatusId: documentStatusId
                         }),
                     })
-                    .then((response) => response.json())
+                    .then((response) => {
+                        if (response.redirected) {
+                            // If redirected, follow the redirect URL
+                            window.location.href = response.url;
+                            return;
+                        }
+                        return response.json();
+                    })
                     .then((data) => {
-                        if (data.success) {
+                        if (data && data.success) {
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Success',
@@ -161,7 +175,7 @@
                             // Update the original value after a successful update
                             selectElem.setAttribute('data-original-value', documentStatusId);
                             resetSaveButton(customerId);
-                        } else {
+                        } else if (data) {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
@@ -169,7 +183,7 @@
                             });
 
                             // Revert the select element's value to the original value
-                            selectElem.value = originalValue;
+                            selectElem.value = selectElem.getAttribute('data-original-value');
                             enableSaveButton(customerId);
                         }
                     })
@@ -181,10 +195,11 @@
                         });
 
                         // Revert the select element's value to the original value
-                        selectElem.value = originalValue;
+                        selectElem.value = selectElem.getAttribute('data-original-value');
                         enableSaveButton(customerId);
                     });
             }
+
 
             // Reset Save button to inactive state after successful update
             function resetSaveButton(customerId) {
