@@ -75,7 +75,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reply/{id}', [QuotationController::class, 'reply'])->name('reply');
         Route::post('/send-reply/{id}', [QuotationController::class, 'sendReply'])->name('sendReply');
     });
-    Route::prefix('rejection-reasons')->name('rejection_reasons.')->group(function () {
+    Route::prefix('rejection-reasons')->name('rejection-reasons.')->group(function () {
         Route::get('/', [RejectionReasonController::class, 'index'])->name('index');
         Route::post('/', [RejectionReasonController::class, 'store'])->name('store');
         Route::delete('/{optionId}', [RejectionReasonController::class, 'destroy'])->name('destroy');

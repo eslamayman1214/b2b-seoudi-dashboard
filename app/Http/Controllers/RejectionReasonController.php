@@ -2,92 +2,50 @@
 
 namespace App\Http\Controllers;
 
-use GuzzleHttp\Client;
-use Illuminate\Http\Request;
+use App\Helpers\LogHelper;
+use App\Http\Requests\StoreRejectionReasonRequest;
+use App\Services\RejectionReasonService;
 
 class RejectionReasonController extends Controller
 {
-    protected $token = '98bwbb5tv6v04xazs6mkb7diu3lxc3l7';
+    public function __construct(private RejectionReasonService $rejectionReasonService, private LogHelper $logHelper)
+    {
+        $this->rejectionReasonService = $rejectionReasonService;
+        $this->logHelper = $logHelper;
+    }
 
     public function index()
     {
-        $client = new Client();
-        $url = 'https://10.1.94.101/rest/V1/seoudi/customer/document-status-options';
+        $this->logHelper->logAction('View Rejection Reasons', 'Fetching rejection reasons');
+        $rejectionReasons = $this->rejectionReasonService->getRejectionReasons();
 
-        try {
-            $response = $client->request('GET', $url, [
-                'headers' => ['Authorization' => 'Bearer ' . $this->token],
-                'verify' => false,
-            ]);
-
-            $data = json_decode($response->getBody()->getContents(), true);
-            $rejectionReasons = $data[0]['rejection_reason'] ?? [];
-
-            return view('rejection_reasons.index', compact('rejectionReasons'));
-        } catch (\Exception $e) {
+        if (empty($rejectionReasons)) {
             return back()->withErrors(['error' => 'Failed to fetch rejection reasons.']);
         }
+
+        return view('rejection_reasons.index', compact('rejectionReasons'));
     }
 
-    public function store(Request $request)
+    public function store(StoreRejectionReasonRequest $request)
     {
-        $request->validate(['optionLabel' => 'required|string']);
-
-        $client = new Client();
-        $url = 'https://10.1.94.101/rest/V1/rejectionreason/add';
-
+        $this->logHelper->logAction('Add Rejection Reason', 'Adding a new rejection reason');
         try {
-            $response = $client->request('POST', $url, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->token,
-                    'Content-Type' => 'application/json',
-                ],
-                'verify' => false,
-                'json' => [
-                    'optionLabel' => $request->input('optionLabel'),
-                ],
-            ]);
-
-            // If the response status is 200, return with a success message
-            if ($response->getStatusCode() === 200) {
-                return redirect()->route('rejection_reasons.index')->with('success', 'Rejection reason added successfully.');
-            }
-
-            // Handle unexpected successful responses
-            return redirect()->route('rejection_reasons.index')->withErrors(['error' => 'Unexpected response from the server.']);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            // Check for duplicate error (400 Bad Request)
-            if ($e->getResponse()->getStatusCode() === 400) {
-                $errorMessage = json_decode($e->getResponse()->getBody()->getContents(), true)['message'] ?? 'The reason already exists.';
-
-                return back()->withErrors(['error' => $errorMessage]);
-            }
-
-            // Handle other exceptions
-            return back()->withErrors(['error' => 'Failed to add rejection reason.']);
+            $this->rejectionReasonService->addRejectionReason($request->optionLabel);
+            return redirect()->route('rejection-reasons.index')->with('success', 'Rejection reason added successfully.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
 
     public function destroy($optionId)
     {
-        $client = new Client();
-        $url = 'https://10.1.94.101/rest/V1/rejectionreason/remove';
+        $this->logHelper->logAction('Delete Rejection Reason', "Deleting rejection reason ID: {$optionId}");
+        $success = $this->rejectionReasonService->removeRejectionReason($optionId);
 
-        try {
-            $response = $client->request('POST', $url, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->token,
-                    'Content-Type' => 'application/json',
-                ],
-                'verify' => false,
-                'json' => [
-                    'optionId' => $optionId,
-                ],
-            ]);
-
-            return redirect()->route('rejection_reasons.index')->with('success', 'Rejection reason deleted successfully.');
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to delete rejection reason.']);
+        if ($success) {
+            return redirect()->route('rejection-reasons.index')->with('success', 'Rejection reason deleted successfully.');
         }
+
+        return back()->withErrors(['error' => 'Failed to delete rejection reason.']);
     }
 }

@@ -60,15 +60,11 @@
             }
 
             async function submitForm() {
-                alert("submitForm function called."); // Step 1: Confirm function is called
-
                 const form = document.getElementById('rejectionForm');
                 const formData = new FormData(form);
 
                 // Basic fetch without error handling
                 try {
-                    alert("About to make fetch request."); // Step 2: Check if fetch is attempted
-
                     const response = await fetch(form.action, {
                         method: 'POST',
                         headers: {
@@ -82,7 +78,12 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Success',
-                            text: 'Rejection reason added successfully.'
+                            text: 'Rejection reason added successfully.',
+                            timer: 2000, // 2 seconds timer
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Redirect after the Swal message
+                            goBack();
                         });
                     } else {
                         Swal.fire({

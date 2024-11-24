@@ -48,7 +48,7 @@
                                         </svg>
                                     </button>
                                     <form id="deleteForm-{{ $reason['value'] }}"
-                                        action="{{ route('rejection_reasons.destroy', $reason['value']) }}" method="POST"
+                                        action="{{ route('rejection-reasons.destroy', $reason['value']) }}" method="POST"
                                         style="display: none;">
                                         @csrf
                                         @method('DELETE')
@@ -64,7 +64,7 @@
             <div id="addModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
                 <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
                     <h2 class="text-lg font-bold mb-4">Add New Rejection Reason</h2>
-                    <form action="{{ route('rejection_reasons.store') }}" method="POST" id="addForm">
+                    <form action="{{ route('rejection-reasons.store') }}" method="POST" id="addForm">
                         @csrf
                         <label for="optionLabel" class="block text-sm font-semibold mb-2">Reason Label:</label>
                         <input type="text" name="optionLabel" id="optionLabel" required
