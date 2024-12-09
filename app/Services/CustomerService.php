@@ -142,7 +142,7 @@ class CustomerService
         try {
             // Step 1: Update the document status via the API
             $url = "{$this->apiBaseUrl}/customers/document/status";
-            $this->client->request('POST', $url, [
+            $apiResponse = $this->client->request('POST', $url, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->apiToken,
                     'Content-Type' => 'application/json',
@@ -154,16 +154,29 @@ class CustomerService
                     'rejectedReasonId' => $request->input('rejectedReasonId'),
                 ],
             ]);
+            // Validate API response
+            if ($apiResponse->getStatusCode() !== 200) {
+                $responseBody = json_decode($apiResponse->getBody()->getContents(), true);
+                $errorMessage = $responseBody['message'] ?? 'Unknown error';
+                throw new \Exception('API Error: ' . $errorMessage);
+            }
 
             // Step 2: Fetch customer data
             $customerData = $this->getCustomerDataById($request->input('customerId'));
-
-            // Step 3: Send email notification
-            $this->sendRejectionReasonEmail($customerData, $request->input('rejectedReasonId'), $request->input('note'));
-
-            // Step 4: Commit the transaction
+            if (!$customerData) {
+                throw new \Exception('Customer not found for ID: ' . $request->input('customerId'));
+            }
+            // Commit the transaction
             DB::commit();
 
+            // Step 3: Send email only after transaction successfully commits
+            DB::afterCommit(function () use ($customerData, $request) {
+                $this->sendRejectionReasonEmail(
+                    $customerData,
+                    $request->input('rejectedReasonId'),
+                    $request->input('note')
+                );
+            });
             return redirect()->route('customers.index')->with('success', 'Document status updated and rejection email sent successfully.');
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback the transaction on any error

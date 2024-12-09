@@ -5,6 +5,7 @@
             <!-- Filter and Search Bar -->
             <form action="/" method="GET" class="mb-4">
                 <div class="flex items-center space-x-4">
+                    <!-- Filter and Search Fields -->
                     <input type="text" name="sku" value="{{ $sku }}" placeholder="Search by SKU..."
                         class="w-full px-4 py-2 border border-gray-300 rounded-md outline-none placeholder-gray-500">
                     <input type="text" id="start_date" name="start_date" value="{{ $startDate ?? '' }}"
@@ -12,23 +13,45 @@
                         class="px-4 py-2 border border-gray-300 rounded-md outline-none placeholder-gray-500">
                     <input type="text" id="end_date" name="end_date" value="{{ $endDate ?? '' }}" placeholder="End Date"
                         class="px-4 py-2 border border-gray-300 rounded-md outline-none placeholder-gray-500">
-                    <button type="submit" class="px-4 py-2 bg-blue-200 hover:bg-blue-300">
+                    <button type="submit" class="px-4 py-2 bg-blue-200 text-gray-800 rounded-md hover:bg-blue-300">
                         Filter
                     </button>
-                    <a href="/" class="px-4 py-2 bg-gray-200 hover:bg-gray-300">
+                    <a href="/" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
                         Reset
                     </a>
+
                     <!-- Add Product Button -->
                     <button id="addProductButton" type="button"
                         class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
                             fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                                clip-rule="evenodd" />
+                            <path
+                                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
                         </svg>
                         Add Product
                     </button>
+
+                    <!-- Export Products Button -->
+                    <a href="{{ route('products.export') }}"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16" />
+                        </svg>
+                        Export Products
+                    </a>
+
+                    <!-- Export Tiers Button -->
+                    <a href="{{ route('tiers.export') }}"
+                        class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16" />
+                        </svg>
+                        Export Tiers
+                    </a>
                 </div>
             </form>
 

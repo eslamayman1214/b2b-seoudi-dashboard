@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ProductController as ApiProductController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProductController;
@@ -85,5 +86,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/customers/rejection-reason/save', [CustomerController::class, 'saveRejectionReason'])->name('customers.saveRejectionReason');
     Route::delete('/tiers/{id}', [TierController::class, 'destroy'])->name('tiers.destroy');
     Route::post('/customers/update-document-status', [CustomerController::class, 'updateDocumentStatus'])->name('customers.updateDocumentStatus');
+    Route::get('/download-products-template', [FileController::class, 'downloadProductsTemplate'])->name('products.template.download');
+    Route::get('/download-tiers-template', [FileController::class, 'downloadTiersTemplate'])->name('tiers.template.download');
+    Route::get('/export-products', [FileController::class, 'exportProducts'])->name('products.export');
+    Route::get('/export-tiers', [FileController::class, 'exportTiers'])->name('tiers.export');
+
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });

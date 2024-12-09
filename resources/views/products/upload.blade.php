@@ -4,7 +4,8 @@
         <div class="container mx-auto py-12">
             <div class="max-w-lg mx-auto bg-white shadow-lg rounded-lg">
                 <div class="px-6 py-4">
-                    <h2 class="text-2xl font-semibold text-gray-800">{{ __('Upload CSV File') }}</h2>
+                    <h2 class="text-2xl font-semibold text-gray-800 text-center">{{ __('Upload and Download CSV Files') }}
+                    </h2>
 
                     {{-- Success Message --}}
                     @if (session('success'))
@@ -29,25 +30,27 @@
                         @csrf
 
                         <div class="mb-4">
-                            <label for="csv_file"
-                                class="block text-sm font-medium text-gray-700">{{ __('Product CSV File') }}</label>
                             <input id="csv_file" type="file"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('csv_file') border-red-500 @enderror"
+                                class="block w-auto rounded-md border-gray-300 shadow-sm mb-2 @error('csv_file') border-red-500 @enderror"
                                 name="csv_file" required>
 
-                            @error('csv_file')
-                                <span class="text-red-500 text-sm mt-1">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
+                            <div class="flex justify-between items-center">
+                                <a href="{{ route('products.template.download') }}"
+                                    class="text-blue-600 underline hover:text-blue-800">
+                                    {{ __('Download Products Template') }}
+                                </a>
+                                <button type="submit"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    {{ __('Upload Products') }}
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="flex justify-end">
-                            <button type="submit"
-                                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                {{ __('Upload Products') }}
-                            </button>
-                        </div>
+                        @error('csv_file')
+                            <p class="text-red-500 text-sm mt-1">
+                                <strong>{{ $message }}</strong>
+                            </p>
+                        @enderror
                     </form>
 
                     {{-- Upload Tiers CSV --}}
@@ -55,25 +58,27 @@
                         @csrf
 
                         <div class="mb-4">
-                            <label for="tiers_csv_file"
-                                class="block text-sm font-medium text-gray-700">{{ __('Tiers CSV File') }}</label>
                             <input id="tiers_csv_file" type="file"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm @error('tiers_csv_file') border-red-500 @enderror"
+                                class="block w-auto rounded-md border-gray-300 shadow-sm mb-2 @error('tiers_csv_file') border-red-500 @enderror"
                                 name="tiers_csv_file" required>
 
-                            @error('tiers_csv_file')
-                                <span class="text-red-500 text-sm mt-1">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
+                            <div class="flex justify-between items-center">
+                                <a href="{{ route('tiers.template.download') }}"
+                                    class="text-green-600 underline hover:text-green-800">
+                                    {{ __('Download Tiers Template') }}
+                                </a>
+                                <button type="submit"
+                                    class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    {{ __('Upload Tiers') }}
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="flex justify-end">
-                            <button type="submit"
-                                class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
-                                {{ __('Upload Tiers') }}
-                            </button>
-                        </div>
+                        @error('tiers_csv_file')
+                            <p class="text-red-500 text-sm mt-1">
+                                <strong>{{ $message }}</strong>
+                            </p>
+                        @enderror
                     </form>
                 </div>
             </div>
