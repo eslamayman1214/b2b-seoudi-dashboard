@@ -41,6 +41,7 @@
                             <th class="py-3 px-4 border border-gray-300">Phone Number</th>
                             <th class="py-3 px-4 border border-gray-300">Group</th>
                             <th class="py-3 px-4 border border-gray-300">Document</th>
+                            <th class="py-2 px-4 border-b">Customer Credit</th>
                             <th class="py-3 px-4 border border-gray-300">Document Status</th>
                         </tr>
                     </thead>
@@ -63,6 +64,12 @@
                                             <path
                                                 d="M12 5a1 1 0 00-1-1H9a1 1 0 00-1 1v5H5.586l4.707 4.707a1 1 0 001.414 0L16.414 10H13V5zM3 15a1 1 0 011-1h12a1 1 0 011 1v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-1z" />
                                         </svg>
+                                    </a>
+                                </td>
+                                <td class="py-2 px-4 border-b">
+                                    <a href="{{ route('customer.credit', ['customerId' => $customer['id']]) }}"
+                                        class="text-blue-500 hover:text-blue-700">
+                                        <i class="fas fa-credit-card"></i>
                                     </a>
                                 </td>
                                 <td class="border px-4 py-2">

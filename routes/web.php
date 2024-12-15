@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ProductController as ApiProductController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerCreditController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\PasswordController;
@@ -90,6 +91,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/download-tiers-template', [FileController::class, 'downloadTiersTemplate'])->name('tiers.template.download');
     Route::get('/export-products', [FileController::class, 'exportProducts'])->name('products.export');
     Route::get('/export-tiers', [FileController::class, 'exportTiers'])->name('tiers.export');
+
+    Route::get('/customer-credit/{customerId}', [CustomerCreditController::class, 'getCustomerCredit'])->name('customer.credit');
+    Route::get('/customer-credit/create/{customerId}', [CustomerCreditController::class, 'showCreateCreditForm'])->name('customer.credit.create');
+    Route::post('/customer-credit/store', [CustomerCreditController::class, 'createCustomerCredit'])->name('customer.credit.store');
+    Route::put('/customer-credit/update/{customerId}', [CustomerCreditController::class, 'updateCustomerCredit'])->name('customer.credit.update');
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });
