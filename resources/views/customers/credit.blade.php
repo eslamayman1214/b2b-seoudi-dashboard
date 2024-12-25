@@ -34,10 +34,16 @@
                 @method('PUT')
 
                 <div class="mb-4">
-                    <label for="credit_limit" class="block text-lg font-semibold">Credit Limit</label>
-                    <input type="number" id="credit_limit" name="credit_limit"
-                        value="{{ old('credit_limit', $creditData['credit_limit']) }}"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md" oninput="checkCreditChange()">
+                    <label for="credit_limit" class="block text-lg font-semibold">Credit Category</label>
+                    <select name="credit_limit" id="credit_limit" class="w-full px-4 py-2 border border-gray-300 rounded-md"
+                        required>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->value }}"
+                                {{ $creditData['credit_limit'] == $category->value ? 'selected' : '' }}>
+                                {{ ucfirst($category->category_name) }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <button type="submit" id="update_button" disabled
@@ -54,28 +60,20 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const creditLimitInput = document.getElementById('credit_limit');
+                const creditLimitSelect = document.getElementById('credit_limit');
                 const updateButton = document.getElementById('update_button');
-                const initialCreditLimit = parseFloat(creditLimitInput.value);
+                const initialCreditLimit = creditLimitSelect.value;
 
-                // Function to check if the credit limit value has changed and is valid
+                // Function to check if the selected value has changed
                 function checkCreditChange() {
-                    const currentCreditLimit = parseFloat(creditLimitInput.value);
-
-                    // Check if the input is a valid number and not empty
-                    if (!isNaN(currentCreditLimit) && creditLimitInput.value.trim() !== '' && currentCreditLimit !==
-                        initialCreditLimit) {
-                        updateButton.disabled = false;
-                    } else {
-                        updateButton.disabled = true;
-                    }
+                    updateButton.disabled = creditLimitSelect.value === initialCreditLimit;
                 }
 
-                // Initial check to ensure button is disabled on page load
-                checkCreditChange();
+                // Attach the function to the change event
+                creditLimitSelect.addEventListener('change', checkCreditChange);
 
-                // Attach the function to the input event
-                creditLimitInput.addEventListener('input', checkCreditChange);
+                // Initial check to ensure the button is disabled on page load
+                checkCreditChange();
             });
         </script>
     @endsection

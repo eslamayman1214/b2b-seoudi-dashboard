@@ -21,9 +21,14 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="credit_limit" class="block text-lg font-semibold">Credit Limit</label>
-                    <input type="number" id="credit_limit" name="credit_limit" step="0.01"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-md" required oninput="validateCreditLimit()">
+                    <label for="credit_limit" class="block text-lg font-semibold">Credit Category</label>
+                    <select name="credit_limit" id="credit_limit" class="w-full px-4 py-2 border border-gray-300 rounded-md"
+                        required>
+                        <option value="" disabled selected>Select a category</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->value }}">{{ ucfirst($category->category_name) }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="flex space-x-4">
@@ -41,22 +46,9 @@
         </div>
 
         <script>
-            function validateCreditLimit() {
-                const creditLimitInput = document.getElementById('credit_limit');
-                const createButton = document.getElementById('create_button');
-
-                const value = creditLimitInput.value.trim();
-
-                // Enable the button only if the input is a valid number and not empty
-                if (value !== '' && !isNaN(value)) {
-                    createButton.disabled = false;
-                } else {
-                    createButton.disabled = true;
-                }
-            }
-
-            // Initial check to ensure button is disabled on page load
-            validateCreditLimit();
+            document.getElementById('credit_limit').addEventListener('change', function() {
+                document.getElementById('create_button').disabled = !this.value;
+            });
         </script>
     @endsection
 </x-layout>

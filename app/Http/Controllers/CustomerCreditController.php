@@ -23,17 +23,21 @@ class CustomerCreditController extends Controller
         $this->logHelper->logAction('Get Customer Credit', "Fetching credit details for customer ID: {$customerId}");
 
         $creditData = $this->customerCreditService->getCustomerCredit($customerId);
+        $categories = $this->customerCreditService->getCreditCategories();
 
         if (is_null($creditData)) {
             return redirect()->route('customer.credit.create', ['customerId' => $customerId]);
         }
 
-        return view('customers.credit', ['creditData' => $creditData]);
+        $creditData['category_name'] = $this->customerCreditService->mapCreditValueToCategory($creditData['credit_limit'], $categories);
+
+        return view('customers.credit', compact('creditData', 'categories'));
     }
 
     public function showCreateCreditForm($customerId)
     {
-        return view('customers.create_credit', ['customerId' => $customerId]);
+        $categories = $this->customerCreditService->getCreditCategories();
+        return view('customers.create_credit', compact('customerId', 'categories'));
     }
 
     public function createCustomerCredit(CreateCustomerCreditRequest $request)

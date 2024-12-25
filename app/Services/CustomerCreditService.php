@@ -4,6 +4,7 @@ namespace App\Services;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CustomerCreditService
@@ -81,5 +82,19 @@ class CustomerCreditService
             Log::error('Error updating customer credit: ' . $e->getMessage());
             return false;
         }
+    }
+    public function getCreditCategories()
+    {
+        return DB::table('credit_categories')->select('id', 'category_name', 'value')->get();
+    }
+
+    public function mapCreditValueToCategory($value, $categories)
+    {
+        foreach ($categories as $category) {
+            if ($category->value == $value) {
+                return $category->category_name;
+            }
+        }
+        return 'Unknown';
     }
 }

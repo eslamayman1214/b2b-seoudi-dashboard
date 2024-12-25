@@ -38,6 +38,36 @@
                 </fieldset>
             </form>
 
+            <!-- Credit Categories Section -->
+            <form action="{{ route('settings.updateCategories') }}" method="POST" class="mb-4">
+                @csrf
+                <fieldset class="border border-gray-300 rounded p-4">
+                    <legend class="text-lg font-medium">Credit Categories</legend>
+                    <div class="mt-4" id="categories-container">
+                        @foreach ($categories as $category)
+                            <div class="flex items-center mb-4">
+                                <label for="category_{{ $category->id }}" class="block text-gray-700 font-semibold w-1/4">
+                                    {{ ucfirst($category->category_name) }}
+                                </label>
+                                <input type="number" name="categories[{{ $category->id }}][value]"
+                                    id="category_{{ $category->id }}"
+                                    value="{{ old('categories.' . $category->id . '.value', $category->value) }}"
+                                    class="form-input mt-1 block w-full border-gray-300 rounded-md category-input"
+                                    step="0.01" min="0" required>
+                                <input type="hidden" name="categories[{{ $category->id }}][id]"
+                                    value="{{ $category->id }}">
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" id="save-categories-button"
+                            class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded" disabled>
+                            Save Categories
+                        </button>
+                    </div>
+                </fieldset>
+            </form>
+
             <!-- SLA Limit Form -->
             <form action="{{ route('settings.saveSlaLimit') }}" method="POST" class="mb-4" id="sla-limit-form">
                 @csrf
@@ -335,6 +365,45 @@
                         });
                 });
             });
+
+            const categoryInputs = document.querySelectorAll('.category-input');
+            const saveCategoriesButton = document.getElementById('save-categories-button');
+            const initialValues = Array.from(categoryInputs).map(input => parseFloat(input.value));
+
+            // Function to check if any value has changed and all values are valid
+            const checkCategoriesChange = () => {
+                let hasChanged = false;
+                let allValid = true;
+
+                categoryInputs.forEach((input, index) => {
+                    const value = parseFloat(input.value);
+
+                    // Check if the input value is valid and not empty
+                    if (isNaN(value) || value < 0 || input.value.trim() === '') {
+                        allValid = false;
+                    }
+
+                    // Check if the value has changed
+                    if (value !== initialValues[index]) {
+                        hasChanged = true;
+                    }
+                });
+
+                // Enable the button only if all values are valid and at least one has changed
+                saveCategoriesButton.disabled = !(allValid && hasChanged);
+                saveCategoriesButton.classList.toggle('bg-blue-500', allValid && hasChanged);
+                saveCategoriesButton.classList.toggle('hover:bg-blue-700', allValid && hasChanged);
+                saveCategoriesButton.classList.toggle('bg-gray-500', !(allValid && hasChanged));
+                saveCategoriesButton.classList.toggle('hover:bg-gray-700', !(allValid && hasChanged));
+            };
+
+            // Attach the input event listener to all category inputs
+            categoryInputs.forEach(input => {
+                input.addEventListener('input', checkCategoriesChange);
+            });
+
+            // Initial check on page load
+            checkCategoriesChange();
         </script>
     @endsection
 </x-layout>
